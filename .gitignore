@@ -56,6 +56,7 @@ Makefile.Release
 *.opendb
 
 # Visual Studio project files
+*.vcxproj
 *.vcxproj.user
 *.vcxproj.filters
 *.vcxproj.filters.user
