@@ -55,6 +55,11 @@ Makefile.Release
 *.opensdf
 *.opendb
 
+# Visual Studio project files
+*.vcxproj.user
+*.vcxproj.filters
+*.vcxproj.filters.user
+
 # Ignore anything in the scripts folder EXCEPT premake.exe
 scripts/*
 !scripts/premake.exe
