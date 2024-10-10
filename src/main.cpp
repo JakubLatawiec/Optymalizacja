@@ -22,7 +22,7 @@ int main()
 {
 	try
 	{
-		lab0();
+		lab1();
 	}
 	catch (string EX_INFO)
 	{
@@ -68,7 +68,24 @@ void lab0()
 
 void lab1()
 {
+	double x0 = -100;
+	double d = 0.1;
+	double alpha = 2.0;
+	int nMax = 100;
 
+	double* reach = expansion(ff1, x0, d, alpha, nMax);
+	std::cout << "Res: " << reach[0] << ", " << reach[1] << std::endl;
+
+	double a = reach[0];
+	double b = reach[1];
+	double epsilon = 0.0001;
+	double gamma = 0.0001;
+
+	solution sol = fib(ff1, a, b, epsilon);
+	std::cout << sol << std::endl;
+
+	solution sol2 = lag(ff1, a, b, epsilon, gamma, 100);
+	std::cout << sol2;
 }
 
 void lab2()
