@@ -8,7 +8,6 @@ matrix ff1(matrix x, matrix ud1, matrix ud2)
 {
 	matrix y;
 	y = -cos(0.1 * m2d(x)) * exp(-1.0 * pow((0.1 * m2d(x) - 2 * M_PI), 2)) + 0.002 * pow(0.1 * m2d(x), 2);
-	//y = pow(m2d(x) - 2, 2) + 3;
 	return y;
 }
 

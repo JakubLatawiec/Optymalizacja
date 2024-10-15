@@ -24,7 +24,7 @@ int main()
 	{
 		lab1();
 	}
-	catch (string EX_INFO)
+	catch (const string& EX_INFO)
 	{
 		cerr << "ERROR:\n";
 		cerr << EX_INFO << endl << endl;
@@ -68,13 +68,16 @@ void lab0()
 
 void lab1()
 {
-	double x0 = -100;
+	double x0 = 1;
 	double d = 0.1;
 	double alpha = 2.0;
 	int nMax = 100;
 
+	//for na 100 (randowanie x0, i wypis do pliku)
 	double* reach = expansion(ff1, x0, d, alpha, nMax);
-	std::cout << "Res: " << reach[0] << ", " << reach[1] << std::endl;
+	std::cout << "Res: " << reach[0] << ", " << reach[1] << "\n\n";
+	std::cout << solution::f_calls << "\n";
+	solution::clear_calls();
 
 	double a = reach[0];
 	double b = reach[1];
@@ -84,8 +87,17 @@ void lab1()
 	solution sol = fib(ff1, a, b, epsilon);
 	std::cout << sol << std::endl;
 
+	solution::clear_calls();
+
 	solution sol2 = lag(ff1, a, b, epsilon, gamma, 100);
 	std::cout << sol2;
+
+	solution::clear_calls();
+
+
+	//Problem rzeczywisty
+	double Pa = 0.5;
+	double Va_0 = 5.0;
 }
 
 void lab2()

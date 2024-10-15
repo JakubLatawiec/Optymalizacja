@@ -61,11 +61,12 @@ double* expansion(matrix(*ff)(matrix, matrix, matrix), double x0, double d, doub
 				return new double[2] {xi_next, xi - d};
 		}
 
-		xi_next_sol.f_calls = 0;
+		solution::clear_calls();
 		double xi_prev{};
+		double f_xi = m2d(xi_sol.y);
 		do
 		{
-			if (xi_next_sol.f_calls > Nmax)
+			if (solution::f_calls > Nmax)
 			{
 				xi_next_sol.flag = 0;
 				break;
@@ -74,16 +75,17 @@ double* expansion(matrix(*ff)(matrix, matrix, matrix), double x0, double d, doub
 			++i;
 			xi_next = xi + pow(alpha, i) * d;
 
-			xi_sol.x = xi;
-			xi_sol.fit_fun(ff);
-
 			xi_next_sol.x = xi_next;
 			xi_next_sol.fit_fun(ff);
 
+			if (!(f_xi > xi_next_sol.y))
+				break;
+
 			xi_prev = xi;
 			xi = xi_next;
+			f_xi = m2d(xi_next_sol.y);
 
-		} while (xi_sol.y > xi_next_sol.y);
+		} while (true);
 
 		if (d > 0)
 			return new double[2] {xi_prev, xi_next};
@@ -221,6 +223,7 @@ solution lag(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 			if (ai_sol.f_calls > Nmax)
 			{
 				Xopt.flag = 0;
+				throw std::string("Error message!");
 				break;
 			}
 
@@ -240,7 +243,7 @@ solution lag(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 
 		return Xopt;
 	}
-	catch (string ex_info)
+	catch (string& ex_info)
 	{
 		throw ("solution lag(...):\n" + ex_info);
 	}
