@@ -1,27 +1,39 @@
-//Ten plik nie powinien byæ edytowany
+//Do not edit the code below (unless you know what you are doing)
 
-#pragma once
+#ifndef OPT_ALG_H
+#define OPT_ALG_H
 
 #include"solution.h"
+#include<random>
+#include<chrono>
 
-solution MC(matrix(*ff)(matrix, matrix, matrix), int N, matrix lb, matrix ub, double epsilon, int Nmax, matrix ud1 = NAN, matrix ud2 = NAN);
+#if LAB_NO>1
+double *expansion(double x0, double d, double alfa, int Nmax, matrix O = 0.0);
+solution fib(double a, double b, double epsilon, matrix O = 0.0);
+solution lag(double a, double b, double epsilon, double gamma, int Nmax, matrix O = 0.0);
+#endif
+#if LAB_NO>2
+solution HJ(matrix x0, double s, double alfa, double epsilon, int Nmax, matrix O = 0.0);
+solution HJ_trial(solution XB, double s, matrix O = 0.0);
+solution Rosen(matrix x0, matrix s0, double alfa, double beta, double epsilon, int Nmax, matrix O = 0.0);
+#endif
+#if LAB_NO>3
+solution pen(matrix x0, double c, double dc, double epsilon, int Nmax, matrix O = 0.0);
+solution sym_NM(matrix x0, double s, double alfa, double beta, double gama, double delta, double epsilon, int Nmax, matrix O = 0.0);
+#endif
+#if LAB_NO>4
+solution SD(matrix x0, double h0, double epsilon, int Nmax, matrix O = 0.0);
+solution CG(matrix x0, double h0, double epsilon, int Nmax, matrix O = 0.0);
+solution Newton(matrix x0, double h0, double epsilon, int Nmax, matrix O = 0.0);
+solution golden(double a, double b, double epsilon, int Nmax, matrix O = 0.0);
+double compute_b(matrix x, matrix d, matrix limits);
+#endif
+#if LAB_NO>5
+solution Powell(matrix x0, double epsilon, int Nmax, matrix O = 0.0);
+double *compute_ab(matrix x, matrix d, matrix limits);
+#endif
+#if LAB_NO>6
+solution EA(int N, matrix limits, double epsilon, int Nmax, matrix O = 0.0);
+#endif
 
-double* expansion(matrix(*ff)(matrix, matrix, matrix), double x0, double d, double alpha, int Nmax, matrix ud1 = NAN, matrix ud2 = NAN); // throw (string);
-solution fib(matrix(*ff)(matrix, matrix, matrix), double a, double b, double epsilon, matrix ud1 = NAN, matrix ud2 = NAN); // throw (string);
-solution lag(matrix(*ff)(matrix, matrix, matrix), double a, double b, double epsilon, double gamma, int Nmax, matrix ud1 = NAN, matrix ud2 = NAN); // throw (string);
-
-solution HJ(matrix(*ff)(matrix, matrix, matrix), matrix x0, double s, double alpha, double epsilon, int Nmax, matrix ud1 = NAN, matrix ud2 = NAN); // throw (string);
-solution HJ_trial(matrix(*ff)(matrix, matrix, matrix), solution XB, double s, matrix ud1 = NAN, matrix ud2 = NAN); // throw (string);
-solution Rosen(matrix(*ff)(matrix, matrix, matrix), matrix x0, matrix s0, double alpha, double beta, double epsilon, int Nmax, matrix ud1 = NAN, matrix ud2 = NAN); // throw (string);
-
-solution pen(matrix(*ff)(matrix, matrix, matrix), matrix x0, double c, double dc, double epsilon, int Nmax, matrix ud1 = NAN, matrix ud2 = NAN); // throw (string);
-solution sym_NM(matrix(*ff)(matrix, matrix, matrix), matrix x0, double s, double alpha, double beta, double gamma, double delta, double epsilon, int Nmax, matrix ud1 = NAN, matrix ud2 = NAN); // throw (string);
-
-solution SD(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix, matrix), matrix x0, double h0, double epsilon, int Nmax, matrix ud1 = NAN, matrix ud2 = NAN); // throw (string);
-solution CG(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix, matrix), matrix x0, double h0, double epsilon, int Nmax, matrix ud1 = NAN, matrix ud2 = NAN); // throw (string);
-solution Newton(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix, matrix), matrix(*Hf)(matrix, matrix, matrix), matrix x0, double h0, double epsilon, int Nmax, matrix ud1 = NAN, matrix ud2 = NAN); // throw (string);
-solution golden(matrix(*ff)(matrix, matrix, matrix), double a, double b, double epsilon, int Nmax, matrix ud1 = NAN, matrix ud2 = NAN); // throw (string);
-
-solution Powell(matrix(*ff)(matrix, matrix, matrix), matrix x0, double epsilon, int Nmax, matrix ud1 = NAN, matrix ud2 = NAN); // throw (string);
-
-solution EA(matrix(*ff)(matrix, matrix, matrix), int N, matrix lb, matrix ub, int mi, int lambda, matrix sigma0, double epsilon, int Nmax, matrix ud1 = NAN, matrix ud2 = NAN); // throw (string);
+#endif
