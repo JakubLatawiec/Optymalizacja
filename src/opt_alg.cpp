@@ -34,10 +34,63 @@ double* expansion(matrix(*ff)(matrix, matrix, matrix), double x0, double d, doub
 {
 	try
 	{
-		double* p = new double[2]{ 0,0 };
-		//Tu wpisz kod funkcji
+		int i = 0;
+		solution xi_sol, xi_next_sol;
+		double xi, xi_next;
 
-		return p;
+		xi = x0;
+		xi_next = xi + d;
+
+		xi_sol.x = xi;
+		xi_sol.fit_fun(ff);
+
+		xi_next_sol.x = xi_next;
+		xi_next_sol.fit_fun(ff);
+
+		if (xi_next_sol.y == xi_sol.y)
+			return new double[2] {xi, xi_next};
+
+		if (xi_next_sol.y > xi_sol.y)
+		{
+			d = -d;
+			xi_next = xi + d;
+			xi_next_sol.x = xi_next;
+			xi_next_sol.fit_fun(ff);
+
+			if (xi_next_sol.y >= xi_sol.y)
+				return new double[2] {xi_next, xi - d};
+		}
+
+		solution::clear_calls();
+		double xi_prev{};
+		double f_xi = m2d(xi_sol.y);
+		do
+		{
+			if (solution::f_calls > Nmax)
+			{
+				xi_next_sol.flag = 0;
+				break;
+			}
+
+			++i;
+			xi_next = xi + pow(alpha, i) * d;
+
+			xi_next_sol.x = xi_next;
+			xi_next_sol.fit_fun(ff);
+
+			if (!(f_xi > xi_next_sol.y))
+				break;
+
+			xi_prev = xi;
+			xi = xi_next;
+			f_xi = m2d(xi_next_sol.y);
+
+		} while (true);
+
+		if (d > 0)
+			return new double[2] {xi_prev, xi_next};
+
+		return new double[2] {xi_next, xi_prev};
 	}
 	catch (string ex_info)
 	{
@@ -49,8 +102,46 @@ solution fib(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 {
 	try
 	{
+		std::vector<double> sigma = { 1, 1 };
+		double ratio = (b - a) / epsilon;
+		while (true)
+		{
+			if (sigma.back() > ratio)
+				break;
+
+			sigma.push_back(sigma[sigma.size() - 1] + sigma[sigma.size() - 2]);
+		}
+
+		
+		int k = sigma.size() - 1;
+
+		
+		double a0 = a;
+		double b0 = b;
+		double c0 = b0 - sigma[k - 1] / sigma[k] * (b0 - a0);
+		double d0 = a0 + b0 - c0;
+
+		solution c_sol, d_sol;
+		for (int i = 0; i <= k - 3; ++i)
+		{
+			c_sol.x = c0;
+			c_sol.fit_fun(ff);
+
+			d_sol.x = d0;
+			d_sol.fit_fun(ff);
+
+			if (c_sol.y < d_sol.y)
+				b0 = d0;
+			else
+				a0 = c0;
+
+			c0 = b0 - sigma[k - i - 2] / sigma[k - i - 1] * (b0 - a0);
+			d0 = a0 + b0 - c0;
+		}
+
 		solution Xopt;
-		//Tu wpisz kod funkcji
+		Xopt.x = c0;
+		Xopt.fit_fun(ff);
 
 		return Xopt;
 	}
@@ -66,11 +157,93 @@ solution lag(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 	try
 	{
 		solution Xopt;
-		//Tu wpisz kod funkcji
+
+		double ai = a;
+		double bi = b;
+		double ci = (a + b) / 2;
+		double di{};
+
+		int i = 0;
+		double l{}, m{};
+		solution ai_sol, bi_sol, ci_sol, di_sol;
+		double l_prev{}, m_prev{}, di_prev{};
+		do
+		{
+			ai_sol.x = ai;
+			ai_sol.fit_fun(ff);
+
+			bi_sol.x = bi;
+			bi_sol.fit_fun(ff);
+
+			ci_sol.x = ci;
+			ci_sol.fit_fun(ff);
+
+			l = m2d(ai_sol.y) * (pow(bi, 2) - pow(ci, 2)) + m2d(bi_sol.y) * (pow(ci, 2) - pow(ai, 2)) + m2d(ci_sol.y) * (pow(ai, 2) - pow(bi, 2));
+			m = m2d(ai_sol.y) * (bi - ci) + m2d(bi_sol.y) * (ci - ai) + m2d(ci_sol.y) * (ai - bi);
+
+			if (m <= 0)
+			{
+				Xopt.flag = 0;
+				break;
+			}
+
+			di = 0.5 * l / m;
+			di_sol.x = di;
+			di_sol.fit_fun(ff);
+
+			if (ai < di && di < ci)
+			{
+				if (di_sol.y < ci_sol.y)
+				{
+					bi = ci;
+					ci = di;
+				}
+				else
+					ai = di;
+			}
+			else
+			{
+				if (ci < di && di < bi)
+				{
+					if (di_sol.y < ci_sol.y)
+					{
+						ai = ci;
+						ci = di;
+					}
+					else
+						bi = di;
+				}
+				else
+				{
+					Xopt.flag = 0;
+					break;
+				}
+			}
+
+			if (ai_sol.f_calls > Nmax)
+			{
+				Xopt.flag = 0;
+				throw std::string("Error message!");
+				break;
+			}
+
+			if (i > 0)
+			{
+				di_prev = 0.5 * l_prev / m_prev;
+			}
+
+			l_prev = l;
+			m_prev = m;
+
+			++i;
+		} while (!(bi - ai < epsilon || abs(di - di_prev) < gamma));
+
+		Xopt.x = di;
+		Xopt.fit_fun(ff);
 
 		return Xopt;
 	}
-	catch (string ex_info)
+	catch (string& ex_info)
 	{
 		throw ("solution lag(...):\n" + ex_info);
 	}
