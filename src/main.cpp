@@ -25,7 +25,7 @@ int main()
 	try
 	{
 		lab0();
-		lab1();
+		//lab1();
 	}
 	catch (const string& EX_INFO)
 	{
