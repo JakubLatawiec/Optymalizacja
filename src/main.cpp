@@ -22,10 +22,12 @@ void lab6();
 
 int main()
 {
+	cout.precision(10);
+
 	try
 	{
-		lab0();
-		//lab1();
+		//lab0();
+		lab1();
 	}
 	catch (const string& EX_INFO)
 	{
@@ -89,8 +91,8 @@ void lab1()
 #endif
 
 	//Dane dok³adnoœci wyników
-	double epsilon = 1e-20;
-	double gamma = 1e-20;
+	double epsilon = 1e-18;
+	double gamma = 1e-18;
 	int Nmax = 200;
 	double d = 0.01;
 	double alpha = 1.1;
@@ -102,7 +104,6 @@ void lab1()
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<> x0_dist(0.0, 100.0);
-	std::uniform_real_distribution<> alpha_dist(1.1, 2.0);
 
 	//Stringstream do zapisu danych
 	std::stringstream test_ss;
@@ -110,10 +111,11 @@ void lab1()
 	//Solution dla testów
 	solution test_opt;
 
-	//
+	//Dane
+	double test_alpha = 1.5;
+
 	for (int j = 0; j < 3; ++j)
 	{
-		double test_alpha = alpha_dist(gen);
 		for (int i = 0; i < 100; ++i)
 		{
 			double x0 = x0_dist(gen);
@@ -137,6 +139,9 @@ void lab1()
 
 		//Czyszczenie zawartoœci ss
 		test_ss.str(std::string());
+
+		//Zmiana alfy
+		test_alpha += 1.3;
 	}
 
 
@@ -145,7 +150,9 @@ void lab1()
 	test_ss.str(std::string());
 
 	//Obliczanie minimum metod¹ Fibonacci'ego
-	test_opt = fib(ff1T, -100, 100, epsilon);
+	SAVE_CHART_DATA = true;
+
+	test_opt = fib(ff1T, -100.0, 100.0, epsilon);
 	test_ss << m2d(test_opt.x) << ";" << m2d(test_opt.y) << ";" << test_opt.f_calls << ";" << (test_opt.x > -1 && test_opt.x < 1 ? "lokalne" : "globalne") << ";";
 	solution::clear_calls();
 
@@ -153,6 +160,8 @@ void lab1()
 	test_opt = lag(ff1T, -100, 100, epsilon, gamma, Nmax);
 	test_ss << m2d(test_opt.x) << ";" << m2d(test_opt.y) << ";" << test_opt.f_calls << ";" << (test_opt.x > -1 && test_opt.x < 1 ? "lokalne" : "globalne") << ";\n";
 	solution::clear_calls();
+
+	SAVE_CHART_DATA = false;
 
 	//Zapis do pliku
 #ifdef SAVE_TO_FILE

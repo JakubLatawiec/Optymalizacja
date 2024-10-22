@@ -1,6 +1,7 @@
+#include "configuration.h"
 #include"opt_alg.h"
 #include "environment.h"
-#include "configuration.h"
+
 
 solution MC(matrix(*ff)(matrix, matrix, matrix), int N, matrix lb, matrix ub, double epsilon, int Nmax, matrix ud1, matrix ud2)
 {
@@ -104,10 +105,7 @@ solution fib(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 {
 	try
 	{
-
-#ifdef SAVE_CHART_DATA
 		std::stringstream ss;
-#endif
 
 		std::vector<double> sigma = { 1, 1 };
 		double ratio = (b - a) / epsilon;
@@ -145,13 +143,9 @@ solution fib(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 			c0 = b0 - sigma[k - i - 2] / sigma[k - i - 1] * (b0 - a0);
 			d0 = a0 + b0 - c0;
 
-#ifdef SAVE_CHART_DATA
 
-			if (a == -100 && b == 100)
-			{
+			if (SAVE_CHART_DATA)
 				ss << i << ";" << b0 - a0 << ";\n";
-			}
-#endif
 
 		}
 
@@ -159,9 +153,8 @@ solution fib(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 		Xopt.x = c0;
 		Xopt.fit_fun(ff, ud1);
 
-#ifdef SAVE_CHART_DATA
-		save_to_file("fibonacci_chart.csv", ss.str());
-#endif
+		if (SAVE_CHART_DATA)
+			save_to_file("fibonacci_chart.csv", ss.str());
 
 		return Xopt;
 	}
@@ -176,10 +169,7 @@ solution lag(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 {
 	try
 	{
-
-#ifdef SAVE_CHART_DATA
 		std::stringstream ss;
-#endif
 
 		solution Xopt;
 
@@ -260,13 +250,9 @@ solution lag(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 			l_prev = l;
 			m_prev = m;
 
-#ifdef SAVE_CHART_DATA
 			
-			if (a == -100 && b == 100)
-			{
+			if (SAVE_CHART_DATA)
 				ss << i << ";" << bi - ai << ";\n";
-			}
-#endif
 
 			++i;
 		} while (!(bi - ai < epsilon || abs(di - di_prev) < gamma));
@@ -274,9 +260,8 @@ solution lag(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 		Xopt.x = di;
 		Xopt.fit_fun(ff, ud1);
 
-#ifdef SAVE_CHART_DATA
-		save_to_file("lagrange_chart.csv", ss.str());
-#endif
+		if (SAVE_CHART_DATA)
+			save_to_file("lagrange_chart.csv", ss.str());
 
 		return Xopt;
 	}

@@ -9,6 +9,6 @@
 
 //ZAPIS DO PLIKU
 #define SAVE_TO_FILE
-#define SAVE_CHART_DATA
-extern const std::string DATA_PATH;
-extern std::string FILE_PATH;
+inline bool SAVE_CHART_DATA = false;
+inline const std::string DATA_PATH = "../data/";
+inline std::string FILE_PATH{};
