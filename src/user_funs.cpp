@@ -1,8 +1,12 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
-
 #include"user_funs.h"
 
+matrix ff2T(matrix x, matrix ud1, matrix ud2) {
+	matrix result(1, 1);  
+	result(0, 0) = x(0, 0) * x(0, 0) + x(1, 0) * x(1, 0) - cos(2.5 * M_PI * x(0, 0)) - cos(2.5 * M_PI * x(1, 0)) + 2;
+	return result;
+}
 
 matrix ff1(matrix x, matrix ud1, matrix ud2)
 {

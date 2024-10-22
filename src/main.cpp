@@ -22,7 +22,7 @@ int main()
 {
 	try
 	{
-		lab1();
+		lab2();
 	}
 	catch (const string& EX_INFO)
 	{
@@ -102,6 +102,51 @@ void lab1()
 
 void lab2()
 {
+	// Parametry pocz¹tkowe
+	double step_size = 0.5;  // Pocz¹tkowy krok (dla Hooke'a-Jeevesa)
+	matrix s0(2, 1, 0.5);    // Wektor pocz¹tkowych d³ugoœci kroków (dla Rosenbrocka)
+	double alpha = 1.5;      // Wspó³czynnik ekspansji (dla Rosenbrocka)
+	double beta = 0.5;       // Wspó³czynnik kontrakcji (dla Rosenbrocka)
+	double epsilon = 1e-6;   // Dok³adnoœæ
+	int Nmax = 1000;         // Maksymalna liczba wywo³añ funkcji celu
+	matrix ud1, ud2;         // Dodatkowe dane u¿ytkownika (nieu¿ywane tutaj)
+
+	// Wypisanie nag³ówka tabeli
+	std::cout << "D³ugoœæ kroku  Lp.  x1^(0)  x2^(0)  x1* (HJ)  x2* (HJ)  y* (HJ)  Liczba wyw. HJ  Min globalne HJ  x1* (R)  x2* (R)  y* (R)  Liczba wyw. R  Min globalne R" << std::endl;
+
+	// Przeprowadzamy 100 iteracji
+	for (int iter = 1; iter <= 100; ++iter) {
+		// Zmieniamy punkt startowy dla ka¿dej iteracji
+		double start_values[2] = { 1.0 + iter * 0.1, 1.0 + iter * 0.1 };  // Przyk³adowa zmiana
+		matrix x0(2, start_values);  // Punkt pocz¹tkowy jako macierz 2x1
+
+		// Wywo³anie algorytmu Hooke'a-Jeevesa (HJ)
+		solution result_hj = HJ(ff2T, x0, step_size, alpha, epsilon, Nmax, ud1, ud2);
+
+		// Wywo³anie algorytmu Rosenbrocka
+		solution result_rosen = Rosen(ff2T, x0, s0, alpha, beta, epsilon, Nmax, ud1, ud2);
+
+		// Sprawdzamy, czy znaleziono minimum globalne
+		std::string global_min_hj = (result_hj.y(0, 0) <= 1e-3) ? "TAK" : "NIE";
+		std::string global_min_rosen = (result_rosen.y(0, 0) <= 1e-3) ? "TAK" : "NIE";
+
+		// Wypisujemy dane bez dodatkowego formatowania
+		std::cout << step_size << "  "
+			<< iter << "  "
+			<< x0(0, 0) << "  "
+			<< x0(1, 0) << "  "
+			<< result_hj.x(0, 0) << "  "
+			<< result_hj.x(1, 0) << "  "
+			<< result_hj.y(0, 0) << "  "
+			<< result_hj.f_calls << "  "
+			<< global_min_hj << "  "
+			<< result_rosen.x(0, 0) << "  "
+			<< result_rosen.x(1, 0) << "  "
+			<< result_rosen.y(0, 0) << "  "
+			<< result_rosen.f_calls << "  "
+			<< global_min_rosen
+			<< std::endl;
+	}
 
 }
 
