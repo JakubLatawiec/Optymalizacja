@@ -1,5 +1,5 @@
 #include"opt_alg.h"
-
+#include<cmath>
 solution MC(matrix(*ff)(matrix, matrix, matrix), int N, matrix lb, matrix ub, double epsilon, int Nmax, matrix ud1, matrix ud2)
 {
 	try
@@ -249,17 +249,79 @@ solution lag(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 	}
 }
 
-solution HJ(matrix(*ff)(matrix, matrix, matrix), matrix x0, double s, double alpha, double epsilon, int Nmax, matrix ud1, matrix ud2)
-{
-	try
-	{
-		solution Xopt;
-		//Tu wpisz kod funkcji
+solution HJ(matrix(*ff)(matrix, matrix, matrix), matrix x0, double s, double alpha, double epsilon, int Nmax, matrix ud1, matrix ud2) {
+	try {
+		solution Xopt(x0);  // Inicjalizacja punktu startowego jako solution
+		Xopt.fit_fun(ff, ud1, ud2);  // Wywo³anie funkcji celu dla punktu startowego
 
+		int f_calls = 0; // Licznik wywo³añ funkcji celu
+
+		// Definicja eksploracji (lokalnie w funkcji HJ)
+		auto eksploruj = [&](const matrix& x, double step) -> matrix {
+			matrix new_x = x;
+			matrix y = Xopt.fit_fun(ff, ud1, ud2); // Wywo³anie funkcji celu dla punktu startowego
+			matrix new_y;
+
+			// Sprawdzamy w ka¿dym kierunku (x1, x2, itd.) z krokiem s
+			for (int i = 0; i < get_len(x); ++i) {
+				// Tworzymy wektor kroków (macierz o tej samej d³ugoœci co x)
+				matrix step_vector(get_len(x), 1, 0.0);  // Inicjalizujemy macierz zerami
+				step_vector(i, 0) = step;  // Ustawienie kroku w i-tym kierunku
+
+				// Testujemy dodatni krok
+				new_x = x + step_vector;
+				new_y = Xopt.fit_fun(ff, ud1, ud2);
+				if (new_y(0, 0) < y(0, 0)) {
+					y = new_y;
+					continue;
+				}
+
+				// Testujemy ujemny krok
+				new_x = x - step_vector;
+				new_y = Xopt.fit_fun(ff, ud1, ud2);
+				if (new_y(0, 0) < y(0, 0)) {
+					y = new_y;
+				}
+			}
+			return new_x;
+			};
+
+		// G³ówna pêtla Hooke'a-Jeevesa
+		while (s > epsilon) {
+			matrix x = Xopt.x; // Punkt startowy (bazowy)
+			matrix x_new = eksploruj(x, s);  // Eksploracja
+
+			if (Xopt.fit_fun(ff, ud1, ud2)(0, 0) < Xopt.y(0, 0)) {
+				// Wykonujemy krok bazowy
+				while (Xopt.fit_fun(ff, ud1, ud2)(0, 0) < Xopt.y(0, 0)) {
+					matrix delta = x_new - x;
+					x = x_new;
+					x_new = x + delta;
+
+					x_new = eksploruj(x, s);
+
+					f_calls++;
+					if (f_calls > Nmax) {
+						Xopt.flag = -1; // Przekroczono limit wywo³añ funkcji celu
+						return Xopt;
+					}
+				}
+			}
+			else {
+				s *= alpha; // Zmniejszamy krok
+			}
+
+			f_calls++;
+			if (f_calls > Nmax) {
+				Xopt.flag = -1; // Przekroczono limit wywo³añ funkcji celu
+				return Xopt;
+			}
+		}
+
+		Xopt.flag = 1; // Sukces
 		return Xopt;
 	}
-	catch (string ex_info)
-	{
+	catch (string ex_info) {
 		throw ("solution HJ(...):\n" + ex_info);
 	}
 }
@@ -278,21 +340,89 @@ solution HJ_trial(matrix(*ff)(matrix, matrix, matrix), solution XB, double s, ma
 	}
 }
 
-solution Rosen(matrix(*ff)(matrix, matrix, matrix), matrix x0, matrix s0, double alpha, double beta, double epsilon, int Nmax, matrix ud1, matrix ud2)
-{
-	try
-	{
-		solution Xopt;
-		//Tu wpisz kod funkcji
+solution Rosen(matrix(*ff)(matrix, matrix, matrix), matrix x0, matrix s0, double alpha, double beta, double epsilon, int Nmax, matrix ud1, matrix ud2) {
+	try {
+		solution Xopt(x0);  // Inicjalizacja punktu startowego jako solution
+		Xopt.fit_fun(ff, ud1, ud2);  // Wywo³anie funkcji celu dla punktu startowego
 
+		int n = get_len(x0);  // Liczba zmiennych (wymiar problemu)
+		matrix d(n, n, 0.0);  // Macierz kierunków, pocz¹tkowo jednostkowa
+		for (int i = 0; i < n; ++i) {
+			d(i, i) = 1.0;  // Ustawiamy macierz kierunków na jednostkow¹
+		}
+
+		matrix lambda(n, 1, 0.0);  // Wektor lambda
+		matrix p(n, 1, 0.0);       // Wektor liczby pora¿ek w kierunkach
+		matrix s = s0;             // Wektor kroków, zaczynamy od s0
+
+		int i = 0;  // Licznik iteracji
+
+		matrix xB = x0;  // Inicjalizacja xB jako punktu pocz¹tkowego
+		int f_calls = 0;
+
+		while (true) {
+			double max_s = fabs(s(0, 0));
+			for (int j = 1; j < get_len(s); ++j) {
+				if (fabs(s(j, 0)) > max_s) {
+					max_s = fabs(s(j, 0));
+				}
+			}
+
+			if (max_s < epsilon) {
+				break;
+			}
+
+			for (int j = 0; j < n; ++j) {
+				matrix step = s(j, 0) * get_col(d,j);  // Ruch wzd³u¿ kierunku d_j
+
+				// Sprawdzamy, czy ruch wzd³u¿ d_j poprawia funkcjê celu
+				if (Xopt.fit_fun(ff, ud1, ud2)(0, 0) > ff(xB + step, ud1, ud2)(0, 0)) {
+					xB = xB + step;
+					lambda(j, 0) += s(j, 0);
+					s(j, 0) *= alpha;  // Ekspansja
+				}
+				else {
+					s(j, 0) *= -beta;  // Kontrakcja
+					p(j, 0) += 1;
+				}
+
+				f_calls++;
+				if (f_calls > Nmax) {
+					Xopt.flag = -1;  // Przekroczono maksymaln¹ liczbê wywo³añ funkcji celu
+					return Xopt;
+				}
+			}
+
+			i += 1;
+			Xopt.x = xB;
+
+			// Zmiana bazy kierunków, jeœli warunki s¹ spe³nione
+			bool zmiana_bazy = true;
+			for (int j = 0; j < n; ++j) {
+				if (lambda(j, 0) == 0 || p(j, 0) == 0) {
+					zmiana_bazy = false;
+					break;
+				}
+			}
+
+			if (zmiana_bazy) {
+				// Zmieniamy bazê kierunków
+				// (mo¿na tutaj wstawiæ dowoln¹ metodê zmiany bazy, np. Gram-Schmidt)
+				// Resetujemy wektory
+				lambda = matrix(n, 1, 0.0);
+				p = matrix(n, 1, 0.0);
+				s = s0;  // Reset d³ugoœci kroków
+			}
+		}
+
+		Xopt.flag = 1;  // Sukces
 		return Xopt;
+
 	}
-	catch (string ex_info)
-	{
+	catch (string ex_info) {
 		throw ("solution Rosen(...):\n" + ex_info);
 	}
 }
-
 solution pen(matrix(*ff)(matrix, matrix, matrix), matrix x0, double c, double dc, double epsilon, int Nmax, matrix ud1, matrix ud2)
 {
 	try {
