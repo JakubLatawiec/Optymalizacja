@@ -12,14 +12,14 @@ matrix ff1T(matrix x, matrix ud1, matrix ud2)
 
 matrix ff1R(matrix x, matrix ud1, matrix ud2)
 {
-	//Warunki pocz¹tkowe
+	//Warunki poczï¿½tkowe
 	matrix Y0 = matrix(3, new double[3] {
 		5.0, //Va_0
 		1.0,  //Vb_0
 		20.0 //Tb_0
 	});
 
-	//Symulacja dla podanych warunków pocz¹tkowych, danych zadania i szukanego Da
+	//Symulacja dla podanych warunkï¿½w poczï¿½tkowych, danych zadania i szukanego Da
 	matrix* Y = solve_ode(df1, 0, 1, 2000, Y0, ud1, x);
 
 	//Szykanie maksymalnej temperatury
@@ -76,21 +76,21 @@ matrix df1(double t, matrix Y, matrix ud1, matrix ud2)
 		Fb_out = a * b * Db * sqrt(2 * g * Vb / Pb);
 
 
-	//Ustalanie zmiany objêtoœci w zbiornku A
+	//Ustalanie zmiany objï¿½toï¿½ci w zbiornku A
 	if (Y(0) + dY(0) < 0)
-		dY(0) = -Y(0); //Wylanie reszty jeœli strumieñ wiêkszy od objêtoœci wody
+		dY(0) = -Y(0); //Wylanie reszty jeï¿½li strumieï¿½ wiï¿½kszy od objï¿½toï¿½ci wody
 	else
 		dY(0) = -Fa_out; //Wylanie strumienia
 
-	//Ustalanie zmien objêtoœci w zbiorniku B
+	//Ustalanie zmien objï¿½toï¿½ci w zbiorniku B
 	if (Y(1) + dY(1) < 0)
-		dY(1) = -Y(1); //Wylanie reszty jeœli strumieñ wiêkszy od objêtoœci wody
+		dY(1) = -Y(1); //Wylanie reszty jeï¿½li strumieï¿½ wiï¿½kszy od objï¿½toï¿½ci wody
 	else
 		dY(1) = Fa_out + F_in - Fb_out; //Wylanie strumienia oraz wlanie wody z kranu i ze zbiornika A
 
 	//Ustalenie zmian temperatury w zbiorniku B
 	if (Vb > 0)
-		dY(2) = (F_in / Vb) * (T_in - Tb) + (Fa_out / Vb) * (Ta - Tb); //Formu³a jeœli zbiornik B nie jest pusty
+		dY(2) = (F_in / Vb) * (T_in - Tb) + (Fa_out / Vb) * (Ta - Tb); //Formuï¿½a jeï¿½li zbiornik B nie jest pusty
 	else
 		dY(2) = 0; //Pusty zbiornik B
 

@@ -1,10 +1,10 @@
 /*********************************************
-Kod stanowi uzupe³nienie materia³ów do æwiczeñ
+Kod stanowi uzupeÂ³nienie materiaÂ³Ã³w do Ã¦wiczeÃ±
 w ramach przedmiotu metody optymalizacji.
-Kod udostêpniony na licencji CC BY-SA 3.0
-Autor: dr in¿. £ukasz Sztangret
+Kod udostÃªpniony na licencji CC BY-SA 3.0
+Autor: dr inÂ¿. Â£ukasz Sztangret
 Katedra Informatyki Stosowanej i Modelowania
-Akademia Górniczo-Hutnicza
+Akademia GÃ³rniczo-Hutnicza
 Data ostatniej modyfikacji: 19.09.2023
 *********************************************/
 
@@ -83,12 +83,39 @@ void lab0()
 
 void lab1()
 {
+	double x0 = 1;
+	double d = 0.1;
+	double alpha = 2.0;
+	int nMax = 100;
+
+	//for na 100 (randowanie x0, i wypis do pliku)
+	double* reach = expansion(ff1, x0, d, alpha, nMax);
+	std::cout << "Res: " << reach[0] << ", " << reach[1] << "\n\n";
+	std::cout << solution::f_calls << "\n";
+	solution::clear_calls();
+
+	double a = reach[0];
+	double b = reach[1];
+	double epsilon = 0.0001;
+	double gamma = 0.0001;
+
+	solution sol = fib(ff1, a, b, epsilon);
+	std::cout << sol << std::endl;
+
+	solution::clear_calls();
+
+	solution sol2 = lag(ff1, a, b, epsilon, gamma, 100);
+	std::cout << sol2;
+
+	solution::clear_calls();
+
+
 
 #ifdef SAVE_TO_FILE
 	create_environment("lab01");
 #endif
 
-	//Dane dok³adnoœci wyników
+	//Dane dokÂ³adnoÂœci wynikÃ³w
 	double epsilon = 1e-18;
 	double gamma = 1e-30;
 	int Nmax = 200;
@@ -106,13 +133,13 @@ void lab1()
 	//Stringstream do zapisu danych
 	std::stringstream test_ss;
 
-	//Solution dla testów
+	//Solution dla testÃ³w
 	solution test_opt;
 
 	double test_alpha = 1.5;
 	for (int j = 0; j < 3; ++j)
 	{
-		//Liczenie ekspansji, fibonacciego i lagrange'a dla danego wspó³czynnika alpha
+		//Liczenie ekspansji, fibonacciego i lagrange'a dla danego wspÃ³Â³czynnika alpha
 		for (int i = 0; i < 100; ++i)
 		{
 			double x0 = x0_dist(gen);
@@ -134,24 +161,24 @@ void lab1()
 		save_to_file("test_alpha_" + std::to_string(test_alpha) + ".csv", test_ss.str());
 #endif
 
-		//Czyszczenie zawartoœci ss
+		//Czyszczenie zawartoÂœci ss
 		test_ss.str(std::string());
 
 		//Zmiana alfy
 		test_alpha += 1.3;
 	}
 
-	//Czyszczenie zawartoœci ss
+	//Czyszczenie zawartoÂœci ss
 	test_ss.str(std::string());
 
-	//Obliczanie minimum metod¹ Fibonacci'ego
+	//Obliczanie minimum metodÂ¹ Fibonacci'ego
 	SAVE_CHART_DATA = true;
 
 	test_opt = fib(ff1T, -100.0, 100.0, epsilon);
 	test_ss << m2d(test_opt.x) << ";" << m2d(test_opt.y) << ";" << test_opt.f_calls << ";" << (test_opt.x > -1 && test_opt.x < 1 ? "lokalne" : "globalne") << ";";
 	solution::clear_calls();
 
-	//Obliczanie minimum metod¹ Lagrange'a
+	//Obliczanie minimum metodÂ¹ Lagrange'a
 	test_opt = lag(ff1T, -100, 100, epsilon, gamma, Nmax);
 	test_ss << m2d(test_opt.x) << ";" << m2d(test_opt.y) << ";" << test_opt.f_calls << ";" << (test_opt.x > -1 && test_opt.x < 1 ? "lokalne" : "globalne") << ";\n";
 	solution::clear_calls();
@@ -172,12 +199,12 @@ void lab1()
 	ud1(0) = 0.5; //Pole zbiornika A (Pa) [m^2]
 	ud1(1) = 90.0; //Temperatura wody w zbiorniku A (Ta) [Celsjusz]
 	ud1(2) = 1.0; //Pole zbiornika B (Pb) [m^2]
-	ud1(3) = 36.5665 * 0.0001; //Otwór w zbiorniku B (Db) [m^2]
-	ud1(4) = 10 * 0.001; //Strumieñ wody z kranu (F_in) [m^3/s]
+	ud1(3) = 36.5665 * 0.0001; //OtwÃ³r w zbiorniku B (Db) [m^2]
+	ud1(4) = 10 * 0.001; //StrumieÃ± wody z kranu (F_in) [m^3/s]
 	ud1(5) = 20.0; //Temperatura wody z kranu (T_in) [Celsjusz]
-	ud1(6) = 0.98; //Wspó³czynnik lepkoœci cieczy (a) [-]
-	ud1(7) = 0.63; //Wspó³czynnik zwê¿ania strumienia cieczy (b) [-]
-	ud1(8) = 9.81; //Przyœpieszenie ziemskie (g) [m/s^2]
+	ud1(6) = 0.98; //WspÃ³Â³czynnik lepkoÂœci cieczy (a) [-]
+	ud1(7) = 0.63; //WspÃ³Â³czynnik zwÃªÂ¿ania strumienia cieczy (b) [-]
+	ud1(8) = 9.81; //PrzyÂœpieszenie ziemskie (g) [m/s^2]
 
 	//Zakres szukania Da
 	double Da_0_s = 1.0 * 0.0001;
@@ -188,7 +215,7 @@ void lab1()
 	std::cout << opt;
 	solution::clear_calls();
 
-	//Warunki pocz¹tkowe
+	//Warunki poczÂ¹tkowe
 	matrix Y0 = matrix(3, 1);
 	Y0(0) = 5.0; //Poczatkowa objetosc w a
 	Y0(1) = 1.0; //Poczatkowa objetosc w b

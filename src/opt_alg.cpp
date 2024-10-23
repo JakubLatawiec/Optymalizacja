@@ -106,7 +106,7 @@ solution fib(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 	try
 	{
 		std::stringstream ss;
-
+    
 		std::vector<double> sigma = { 1, 1 };
 		double ratio = (b - a) / epsilon;
 		while (true)
@@ -115,11 +115,8 @@ solution fib(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 				break;
 
 			sigma.push_back(sigma[sigma.size() - 1] + sigma[sigma.size() - 2]);
-		}
-
-		
+		}	
 		int k = sigma.size() - 1;
-
 		
 		double a0 = a;
 		double b0 = b;
@@ -142,11 +139,9 @@ solution fib(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 
 			c0 = b0 - sigma[k - i - 2] / sigma[k - i - 1] * (b0 - a0);
 			d0 = a0 + b0 - c0;
-
-
+      
 			if (SAVE_CHART_DATA)
 				ss << i << ";" << b0 - a0 << ";\n";
-
 		}
 
 		solution Xopt;
@@ -249,10 +244,9 @@ solution lag(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 			l_prev = l;
 			m_prev = m;
 
-			
 			if (SAVE_CHART_DATA)
 				ss << i << ";" << bi - ai << ";\n";
-
+      
 			++i;
 		} while (!(bi - ai < epsilon || abs(di - di_prev) < gamma));
 
