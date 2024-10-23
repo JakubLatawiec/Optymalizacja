@@ -1,9 +1,7 @@
 #pragma once
-
 #include <string>
 
 //OBLICZENIA
-
 #define CALC_TEST
 #define CALC_SIMULATION
 

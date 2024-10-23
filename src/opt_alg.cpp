@@ -72,7 +72,7 @@ double* expansion(matrix(*ff)(matrix, matrix, matrix), double x0, double d, doub
 			if (solution::f_calls > Nmax)
 			{
 				xi_next_sol.flag = 0;
-				break;
+				throw std::string("Maximum amount of f_calls reached!");
 			}
 
 			++i;
@@ -170,7 +170,6 @@ solution lag(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 	try
 	{
 		std::stringstream ss;
-
 		solution Xopt;
 
 		double ai = a;
