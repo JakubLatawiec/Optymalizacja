@@ -1,4 +1,7 @@
+#include "configuration.h"
 #include"opt_alg.h"
+#include "environment.h"
+
 
 solution MC(matrix(*ff)(matrix, matrix, matrix), int N, matrix lb, matrix ub, double epsilon, int Nmax, matrix ud1, matrix ud2)
 {
@@ -42,23 +45,23 @@ double* expansion(matrix(*ff)(matrix, matrix, matrix), double x0, double d, doub
 		xi_next = xi + d;
 
 		xi_sol.x = xi;
-		xi_sol.fit_fun(ff);
+		xi_sol.fit_fun(ff, ud1);
 
 		xi_next_sol.x = xi_next;
-		xi_next_sol.fit_fun(ff);
+		xi_next_sol.fit_fun(ff, ud1);
 
 		if (xi_next_sol.y == xi_sol.y)
-			return new double[2] {xi, xi_next};
+			return new double[3] {xi, xi_next, (double)solution::f_calls};
 
 		if (xi_next_sol.y > xi_sol.y)
 		{
 			d = -d;
 			xi_next = xi + d;
 			xi_next_sol.x = xi_next;
-			xi_next_sol.fit_fun(ff);
+			xi_next_sol.fit_fun(ff, ud1);
 
 			if (xi_next_sol.y >= xi_sol.y)
-				return new double[2] {xi_next, xi - d};
+				return new double[3] {xi_next, xi - d, (double)solution::f_calls};
 		}
 
 		solution::clear_calls();
@@ -69,14 +72,14 @@ double* expansion(matrix(*ff)(matrix, matrix, matrix), double x0, double d, doub
 			if (solution::f_calls > Nmax)
 			{
 				xi_next_sol.flag = 0;
-				break;
+				throw std::string("Maximum amount of f_calls reached!");
 			}
 
 			++i;
 			xi_next = xi + pow(alpha, i) * d;
 
 			xi_next_sol.x = xi_next;
-			xi_next_sol.fit_fun(ff);
+			xi_next_sol.fit_fun(ff, ud1);
 
 			if (!(f_xi > xi_next_sol.y))
 				break;
@@ -88,9 +91,9 @@ double* expansion(matrix(*ff)(matrix, matrix, matrix), double x0, double d, doub
 		} while (true);
 
 		if (d > 0)
-			return new double[2] {xi_prev, xi_next};
+			return new double[3] {xi_prev, xi_next, (double)solution::f_calls};
 
-		return new double[2] {xi_next, xi_prev};
+		return new double[3] {xi_next, xi_prev, (double)solution::f_calls};
 	}
 	catch (string ex_info)
 	{
@@ -102,6 +105,8 @@ solution fib(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 {
 	try
 	{
+		std::stringstream ss;
+    
 		std::vector<double> sigma = { 1, 1 };
 		double ratio = (b - a) / epsilon;
 		while (true)
@@ -110,11 +115,8 @@ solution fib(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 				break;
 
 			sigma.push_back(sigma[sigma.size() - 1] + sigma[sigma.size() - 2]);
-		}
-
-		
+		}	
 		int k = sigma.size() - 1;
-
 		
 		double a0 = a;
 		double b0 = b;
@@ -125,10 +127,10 @@ solution fib(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 		for (int i = 0; i <= k - 3; ++i)
 		{
 			c_sol.x = c0;
-			c_sol.fit_fun(ff);
+			c_sol.fit_fun(ff, ud1);
 
 			d_sol.x = d0;
-			d_sol.fit_fun(ff);
+			d_sol.fit_fun(ff, ud1);
 
 			if (c_sol.y < d_sol.y)
 				b0 = d0;
@@ -137,11 +139,17 @@ solution fib(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 
 			c0 = b0 - sigma[k - i - 2] / sigma[k - i - 1] * (b0 - a0);
 			d0 = a0 + b0 - c0;
+      
+			if (SAVE_CHART_DATA)
+				ss << i << ";" << b0 - a0 << ";\n";
 		}
 
 		solution Xopt;
 		Xopt.x = c0;
-		Xopt.fit_fun(ff);
+		Xopt.fit_fun(ff, ud1);
+
+		if (SAVE_CHART_DATA)
+			save_to_file("fibonacci_chart.csv", ss.str());
 
 		return Xopt;
 	}
@@ -156,6 +164,7 @@ solution lag(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 {
 	try
 	{
+		std::stringstream ss;
 		solution Xopt;
 
 		double ai = a;
@@ -170,13 +179,13 @@ solution lag(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 		do
 		{
 			ai_sol.x = ai;
-			ai_sol.fit_fun(ff);
+			ai_sol.fit_fun(ff, ud1);
 
 			bi_sol.x = bi;
-			bi_sol.fit_fun(ff);
+			bi_sol.fit_fun(ff, ud1);
 
 			ci_sol.x = ci;
-			ci_sol.fit_fun(ff);
+			ci_sol.fit_fun(ff, ud1);
 
 			l = m2d(ai_sol.y) * (pow(bi, 2) - pow(ci, 2)) + m2d(bi_sol.y) * (pow(ci, 2) - pow(ai, 2)) + m2d(ci_sol.y) * (pow(ai, 2) - pow(bi, 2));
 			m = m2d(ai_sol.y) * (bi - ci) + m2d(bi_sol.y) * (ci - ai) + m2d(ci_sol.y) * (ai - bi);
@@ -189,7 +198,7 @@ solution lag(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 
 			di = 0.5 * l / m;
 			di_sol.x = di;
-			di_sol.fit_fun(ff);
+			di_sol.fit_fun(ff, ud1);
 
 			if (ai < di && di < ci)
 			{
@@ -235,11 +244,17 @@ solution lag(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 			l_prev = l;
 			m_prev = m;
 
+			if (SAVE_CHART_DATA)
+				ss << i << ";" << bi - ai << ";\n";
+      
 			++i;
 		} while (!(bi - ai < epsilon || abs(di - di_prev) < gamma));
 
 		Xopt.x = di;
-		Xopt.fit_fun(ff);
+		Xopt.fit_fun(ff, ud1);
+
+		if (SAVE_CHART_DATA)
+			save_to_file("lagrange_chart.csv", ss.str());
 
 		return Xopt;
 	}
