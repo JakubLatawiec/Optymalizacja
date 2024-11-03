@@ -47,3 +47,60 @@ matrix df0(double t, matrix Y, matrix ud1, matrix ud2)
 	dY(1) = ((t <= ud2(1))*ud2(0) - m*g*l*sin(Y(0)) - b*Y(1)) / I;
 	return dY;
 }
+
+
+//lab_2
+
+const double l = 1.0;       // D³ugoœæ ramienia (m)
+const double m = 1.0;       // Masa ramienia (kg)
+const double mc = 5.0;      // Masa ciê¿arka (kg)
+const double b = 0.5;       // Wspó³czynnik tarcia (Nms)
+const double alpha_target = M_PI;   // Docelowy k¹t (rad)
+const double omega_target = 0.0;    // Docelowa prêdkoœæ k¹towa (rad/s)
+const double I = m * l * l + mc * l * l; // Moment bezw³adnoœci
+
+
+double calculate_torque(double k1, double k2, double alpha, double omega)
+{
+
+	return (k1 * (alpha_target - alpha) + k2 * (omega_target - omega));
+}
+
+
+double simulate(double k1, double k2) {
+	double dt = 0.1;      // Krok czasowy (s)
+	double t_max = 100.0;  // Czas symulacji (s)
+
+	double alpha = 0.0;    // Pocz¹tkowy k¹t (rad)
+	double omega = 0.0;    // Pocz¹tkowa prêdkoœæ k¹towa (rad/s)
+	double Q = 0.0;  // Wartoœæ funkcjona³u jakoœci
+
+	// Symulacja dynamiki
+	for (double t = 0; t <= t_max; t += dt) {
+		double M = calculate_torque(k1, k2, alpha, omega); // Moment si³y
+		double alpha_ddot = (M - b * omega) / I;           // Przyspieszenie k¹towe
+
+		// Aktualizacja prêdkoœci i pozycji (metoda Eulera)
+		omega += alpha_ddot * dt;
+		alpha += omega * dt;
+
+		// Aktualizacja funkcjona³u jakoœci
+		Q += dt * (10 * std::pow(alpha_target - alpha, 2) +
+			std::pow(omega_target - omega, 2) +
+			std::pow(M, 2));
+	}
+
+	return Q;
+}
+
+// Funkcja celu wywo³ywana przez algorytmy optymalizacji
+matrix Q_function(matrix k, matrix, matrix) {
+	double k1 = k(0, 0);
+	double k2 = k(1, 0);
+	double Q_value = simulate(k1, k2);
+	matrix result(1, 1);
+	result(0, 0) = Q_value;
+	return result;
+}
+
+

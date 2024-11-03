@@ -1,18 +1,27 @@
-/*********************************************
-Kod stanowi uzupe≥nienie materia≥Ûw do ÊwiczeÒ
+Ôªø/*********************************************
+Kod stanowi uzupe≈Çnienie materia≈Ç√≥w do ƒáwicze≈Ñ
 w ramach przedmiotu metody optymalizacji.
-Kod udostÍpniony na licencji CC BY-SA 3.0
-Autor: dr inø. £ukasz Sztangret
+Kod udostƒôpniony na licencji CC BY-SA 3.0
+Autor: dr in≈º. ≈Åukasz Sztangret
 Katedra Informatyki Stosowanej i Modelowania
-Akademia GÛrniczo-Hutnicza
+Akademia G√≥rniczo-Hutnicza
 Data ostatniej modyfikacji: 19.09.2023
 *********************************************/
 
 #include"opt_alg.h"
-
+#include <cmath>
+#include <vector>
 void lab0();
 void lab1();
+
 void lab2();
+void tabela1();
+void tabela2();
+void tabela3();
+void tabela4();
+void tabela5();
+
+
 void lab3();
 void lab4();
 void lab5();
@@ -22,7 +31,7 @@ int main()
 {
 	try
 	{
-		lab2();
+		tabela2();
 	}
 	catch (const string& EX_INFO)
 	{
@@ -102,35 +111,27 @@ void lab1()
 
 void lab2()
 {
-	// Parametry poczπtkowe
-	double step_size = 0.5;  // Poczπtkowy krok (dla Hooke'a-Jeevesa)
-	matrix s0(2, 1, 0.5);    // Wektor poczπtkowych d≥ugoúci krokÛw (dla Rosenbrocka)
-	double alpha = 1.5;      // WspÛ≥czynnik ekspansji (dla Rosenbrocka)
-	double beta = 0.5;       // WspÛ≥czynnik kontrakcji (dla Rosenbrocka)
-	double epsilon = 1e-6;   // Dok≥adnoúÊ
-	int Nmax = 1000;         // Maksymalna liczba wywo≥aÒ funkcji celu
-	matrix ud1, ud2;         // Dodatkowe dane uøytkownika (nieuøywane tutaj)
+	double step_size = 0.5;  
+	matrix s0(2, 1, 0.5);    
+	double alpha = 1.5;     
+	double beta = 0.5;       
+	double epsilon = 1e-6;   
+	int Nmax = 1000;         
+	matrix ud1, ud2;         
 
-	// Wypisanie nag≥Ûwka tabeli
-	std::cout << "D≥ugoúÊ kroku  Lp.  x1^(0)  x2^(0)  x1* (HJ)  x2* (HJ)  y* (HJ)  Liczba wyw. HJ  Min globalne HJ  x1* (R)  x2* (R)  y* (R)  Liczba wyw. R  Min globalne R" << std::endl;
+	std::cout << "D≈Çugo≈õƒá kroku  Lp.  x1^(0)  x2^(0)  x1* (HJ)  x2* (HJ)  y* (HJ)  Liczba wyw. HJ  Min globalne HJ  x1* (R)  x2* (R)  y* (R)  Liczba wyw. R  Min globalne R" << std::endl;
 
-	// Przeprowadzamy 100 iteracji
-	for (int iter = 1; iter <= 100; ++iter) {
-		// Zmieniamy punkt startowy dla kaødej iteracji
-		double start_values[2] = { 1.0 + iter * 0.1, 1.0 + iter * 0.1 };  // Przyk≥adowa zmiana
-		matrix x0(2, start_values);  // Punkt poczπtkowy jako macierz 2x1
+	for (int iter = 1; iter <= 200; ++iter) {
+		double start_values[2] = { 1.0 + iter * 0.1, 1.0 + iter * 0.1 };  
+		matrix x0(2, start_values);  
 
-		// Wywo≥anie algorytmu Hooke'a-Jeevesa (HJ)
 		solution result_hj = HJ(ff2T, x0, step_size, alpha, epsilon, Nmax, ud1, ud2);
 
-		// Wywo≥anie algorytmu Rosenbrocka
 		solution result_rosen = Rosen(ff2T, x0, s0, alpha, beta, epsilon, Nmax, ud1, ud2);
 
-		// Sprawdzamy, czy znaleziono minimum globalne
 		std::string global_min_hj = (result_hj.y(0, 0) <= 1e-3) ? "TAK" : "NIE";
 		std::string global_min_rosen = (result_rosen.y(0, 0) <= 1e-3) ? "TAK" : "NIE";
 
-		// Wypisujemy dane bez dodatkowego formatowania
 		std::cout << step_size << "  "
 			<< iter << "  "
 			<< x0(0, 0) << "  "
@@ -146,8 +147,15 @@ void lab2()
 			<< result_rosen.f_calls << "  "
 			<< global_min_rosen
 			<< std::endl;
+	
 	}
 
+}
+
+
+void imulation()
+{
+	
 }
 
 void lab3()
@@ -168,4 +176,80 @@ void lab5()
 void lab6()
 {
 
+}
+
+
+void tabela1() {
+	std::cout << "D≈Çugo≈õƒá kroku  Lp.  x1^(0)  x2^(0)  x1* (HJ)  x2* (HJ)  y* (HJ)  Wywo≈Çania HJ  Globalne HJ  "
+		"x1* (R)  x2* (R)  y* (R)  Wywo≈Çania R  Globalne R\n";
+	for (int iter = 1; iter <= 100; ++iter) {
+		double start_values[2] = { 1.0 + iter * 0.1, 1.0 + iter * 0.1 };
+		matrix x0(2, start_values);
+
+		solution result_hj = HJ(Q_function, x0, 0.5, 1.5, 1e-6, 1000, matrix(), matrix());
+		solution result_rosen = Rosen(Q_function, x0, matrix(2, 1, 0.5), 1.5, 0.5, 1e-6, 1000, matrix(), matrix());
+
+		std::string global_hj = (result_hj.y(0, 0) <= 1e-3) ? "TAK" : "NIE";
+		std::string global_rosen = (result_rosen.y(0, 0) <= 1e-3) ? "TAK" : "NIE";
+
+		std::cout << "0.5  " << iter << "  " << x0(0, 0) << "  " << x0(1, 0) << "  "
+			<< result_hj.x(0, 0) << "  " << result_hj.x(1, 0) << "  " << result_hj.y(0, 0) << "  "
+			<< result_hj.f_calls << "  " << global_hj << "  "
+			<< result_rosen.x(0, 0) << "  " << result_rosen.x(1, 0) << "  " << result_rosen.y(0, 0) << "  "
+			<< result_rosen.f_calls << "  " << global_rosen << "\n";
+	}
+}
+
+
+void tabela2() {
+	int global_min_hj = 0, global_min_rosen = 0;
+	for (int iter = 1; iter <= 100; ++iter) {
+		std::cout << iter;
+		double start_values[2] = { 1.0 + iter * 0.1, 1.0 + iter * 0.1 };
+		matrix x0(2, start_values);
+
+		solution result_hj = HJ(Q_function, x0, 0.5, 1.5, 1e-6, 1000, matrix(), matrix());
+		solution result_rosen = Rosen(Q_function, x0, matrix(2, 1, 0.5), 1.5, 0.5, 1e-6, 1000, matrix(), matrix());
+
+		if (result_hj.y(0, 0) <= 1e-3) global_min_hj++;
+		if (result_rosen.y(0, 0) <= 1e-3) global_min_rosen++;
+	}
+
+	std::cout << "Liczba globalnych minim√≥w\n";
+	std::cout << "Metoda Hooke'a-Jeevesa: " << global_min_hj << "\n";
+	std::cout << "Metoda Rosenbrocka: " << global_min_rosen << "\n";
+}
+
+void tabela3() {
+	std::cout << "Nr iteracji  x1* (HJ)  x2* (HJ)  x1* (R)  x2* (R)\n";
+	for (int iter = 0; iter < 100; ++iter) {
+		double start_values[2] = { 1.0 + iter * 0.1, 1.0 + iter * 0.1 };
+		matrix x0(2, start_values);
+
+		solution result_hj = HJ(Q_function, x0, 0.5, 1.5, 1e-6, 1000, matrix(), matrix());
+		solution result_rosen = Rosen(Q_function, x0, matrix(2, 1, 0.5), 1.5, 0.5, 1e-6, 1000, matrix(), matrix());
+
+		std::cout << iter << "  " << result_hj.x(0, 0) << "  " << result_hj.x(1, 0) << "  "
+			<< result_rosen.x(0, 0) << "  " << result_rosen.x(1, 0) << "\n";
+	}
+}
+
+void tabela4() {
+	std::cout << "D≈Çugo≈õƒá kroku  k1* (HJ)  k2* (HJ)  Q* (HJ)  Wywo≈Çania HJ  k1* (R)  k2* (R)  Q* (R)  Wywo≈Çania R\n";
+	double start_values[2] = { 5.0, 5.0 };
+	matrix x0(2, start_values);
+
+	solution result_hj = HJ(Q_function, x0, 0.5, 1.5, 1e-6, 1000, matrix(), matrix());
+	solution result_rosen = Rosen(Q_function, x0, matrix(2, 1, 0.5), 1.5, 0.5, 1e-6, 1000, matrix(), matrix());
+
+	std::cout << "0.5  " << result_hj.x(0, 0) << "  " << result_hj.x(1, 0) << "  " << result_hj.y(0, 0) << "  "
+		<< result_hj.f_calls << "  " << result_rosen.x(0, 0) << "  " << result_rosen.x(1, 0) << "  "
+		<< result_rosen.y(0, 0) << "  " << result_rosen.f_calls << "\n";
+}
+
+void tabela5(double k1_hj, double k2_hj, double k1_rosen, double k2_rosen) {
+	std::cout << "t  Œ± (HJ)  œâ (HJ)  Œ± (R)  œâ (R)\n";
+	double dt = 0.1;
+	double alpha_hj = 0.0, omega_hj = 0.0;
+	double alpha_rosen = 0.0, omega_rosen = 0.0;
 }
