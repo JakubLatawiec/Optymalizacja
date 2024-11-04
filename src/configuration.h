@@ -2,7 +2,7 @@
 #include <string>
 
 //OBLICZENIA
-#define CALC_TEST
+//#define CALC_TEST
 #define CALC_SIMULATION
 
 //ZAPIS DO PLIKU

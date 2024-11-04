@@ -229,11 +229,10 @@ solution lag(matrix(*ff)(matrix, matrix, matrix), double a, double b, double eps
 				}
 			}
 
-			if (ai_sol.f_calls > Nmax)
+			if (solution::f_calls > Nmax)
 			{
 				Xopt.flag = 0;
-				throw std::string("Error message!");
-				break;
+				throw std::string("Maximum amount of f_calls reached!");
 			}
 
 			if (i > 0)
@@ -268,10 +267,64 @@ solution HJ(matrix(*ff)(matrix, matrix, matrix), matrix x0, double s, double alp
 {
 	try
 	{
-		solution Xopt;
-		//Tu wpisz kod funkcji
+		std::stringstream ss{};
 
-		return Xopt;
+		solution XT;
+
+		//Wyliczanie punktu bazowego
+		solution XB;
+		XB.x = x0;
+		XB.fit_fun(ff,ud1, ud2);
+
+		while (s > epsilon)
+		{
+			//Poszukiwanie lepszego punktu
+			XT = HJ_trial(ff, XB, s, ud1, ud2);
+
+			//Znalezienie lepszego punktu
+			if (XT.y < XB.y)
+			{
+				//Szukanie minimum przy sta³ym kroku do momentu roœniêcia funkcji
+				do
+				{
+					//Zapis danych do wykresu
+					if (SAVE_CHART_DATA)
+						ss << m2d(XB.x(0)) << ";" << m2d(XB.x(1)) << "\n";
+
+					solution XB_old = XB;
+					XB = XT;
+					XT.x = 2.0 * XB.x - XB_old.x;
+					XT.fit_fun(ff, ud1, ud2);
+					XT = HJ_trial(ff, XT, s, ud1, ud2);
+					if (solution::f_calls > Nmax)
+					{
+						XT.flag = 0;
+						throw std::string("Maximum amount of f_calls reached!");
+					}
+				} while (XT.y < XB.y);
+
+				//Zast¹pienie wyiczonego punktu poprzednim (XT to by³ punkt w którym funkcja ju¿ ros³a)
+				XT = XB;
+			}
+			//Brak lepszego punktu
+			else
+			{
+				//Zmniejszenie kroku poszukiwañ
+				s = s * alpha;
+			}
+
+			if (solution::f_calls > Nmax)
+			{
+				XT.flag = 0;
+				throw std::string("Maximum amount of f_calls reached!");
+			}
+		}
+
+		//Zapis danych do pliku
+		if (SAVE_CHART_DATA)
+			save_to_file("HJ_chart.csv", ss.str());
+
+		return XT;
 	}
 	catch (string ex_info)
 	{
@@ -283,8 +336,34 @@ solution HJ_trial(matrix(*ff)(matrix, matrix, matrix), solution XB, double s, ma
 {
 	try
 	{
-		//Tu wpisz kod funkcji
+		int n = get_len(XB.x);
 
+		//Baza szukania minimum
+		matrix d = matrix(n, n);
+		for (int i = 0; i < n; ++i)
+			d(i, i) = 1.0;
+
+		//Poszukiwanie lepszego minimum po ka¿dym kierunku funkcji
+		for (int j = 0; j < n; ++j)
+		{
+			//Wyliczanie nowego punktu
+			solution X_trial;
+			X_trial.x = XB.x + s * d[j];
+			X_trial.fit_fun(ff, ud1, ud2);
+
+			//Znalezienie lepszego punktu w kierunku dodatnim
+			if (X_trial.y < XB.y)
+				XB = X_trial;
+			//Sprawdzenie kierunku ujemnego
+			else
+			{
+				X_trial.x = XB.x - s * d[j];
+				X_trial.fit_fun(ff, ud1, ud2);
+				//Znalezienie lepszego punktu w kierunku ujemnym
+				if (X_trial.y < XB.y)
+					XB = X_trial;
+			}
+		}
 		return XB;
 	}
 	catch (string ex_info)
@@ -297,8 +376,138 @@ solution Rosen(matrix(*ff)(matrix, matrix, matrix), matrix x0, matrix s0, double
 {
 	try
 	{
+		std::stringstream ss;
+
 		solution Xopt;
-		//Tu wpisz kod funkcji
+
+		//Funkcja pomocnicza szukaj¹ca maksunalnej wartoœci bezwzglêdnej w wektorze pionowym
+		auto max = [&](matrix m) -> double
+		{
+			int len = get_len(m);
+			double result = 0.0;
+			for (int i = 0; i < len; ++i)
+				if (abs(result) < abs(m(i)))
+					result = abs(m(i));
+
+			return result;
+		};
+
+		int i = 0;
+		//Iloœæ zmiennych funkcji
+		int n = get_len(x0);
+
+		//Baza szukania kierunku
+		matrix d = matrix(n, n);
+		for (int j = 0; j < n; ++j)
+			d(j, j) = 1.0;
+
+		//Wektory pomocnicze
+		matrix lambda = matrix(n, new double[n] {0.0});
+		matrix p = matrix(n, new double[n] {0.0});
+
+		//Wektor pionowy kroku
+		matrix s = s0;
+
+		//Wyliczanie punktu bazowego
+		solution XB;
+		XB.x = x0;
+		XB.fit_fun(ff, ud1, ud2);
+
+		while (max(s) >= epsilon)
+		{
+			//Poszukiwanie lepszego minimum po ka¿dym kierunku funkcji
+			for (int j = 0; j < n; ++j)
+			{
+				//Wyliczanie nowego punktu
+				solution XT;
+				XT.x = XB.x + s(j) * d[j];
+				XT.fit_fun(ff, ud1, ud2);
+
+				//Znalezienie lepszego punktu
+				if (XT.y < XB.y)
+				{
+					XB = XT;
+					lambda(j) += s(j);
+					s(j) *= alpha;
+				}
+				//Zmiana kroku na przeciwny
+				else
+				{
+					s(j) *= -beta;
+					p(j) += 1;
+				}
+			}
+			++i;
+
+			//Zapis danych do wykresu
+			if (SAVE_CHART_DATA)
+				ss << m2d(XB.x(0)) << ";" << m2d(XB.x(1)) << "\n";
+
+			//Znaleziony punkt przypisywany do wynikowego
+			Xopt = XB;
+
+			//Sprawdzanie czy wszystkie mo¿liwe kierunki zosta³y sprawdzone
+			bool changeDirectionBase = true;
+			for (int j = 0; j < n; ++j)
+			{
+				if (lambda(j) == 0 || p(j) == 0)
+				{
+					changeDirectionBase = false;
+					break;
+				}
+			}
+
+			//Zmiana bazy kierunku
+			if (changeDirectionBase)
+			{
+				//Macierz trójk¹tna dolna lambdy
+				matrix lambdaMatrix(n, n);
+				int l = 0;
+				for (int k = 0; k < n; ++k)
+				{
+					for (int j = 0; j <= k; ++j)
+					{
+						lambdaMatrix(k, j) = lambda(l);
+					}
+					++l;
+				}
+
+				//Wyliczanie macierzy Q
+				matrix Q = d * lambdaMatrix;
+
+				//Wyznaczanie sk³adowych wektora V
+				matrix V = matrix(n, 1);
+				V = Q[0];
+				d[0] = V / norm(V);
+				for (int j = 1; j < n; ++j)
+				{
+					matrix sum = matrix(n, new double[n] {0.0});
+					for (int k = 0; k < j; ++k)
+					{
+						sum = sum + (trans(Q[j]) * d[k]) * d[k];
+					}
+					V = Q[j] - sum;
+					d[j] = V / norm(V);
+				}
+
+				//Zerowanie wektorów pomocniczych
+				lambda = matrix(n, new double[n] {0.0});
+				p = matrix(n, new double[n] {0.0});
+
+				//Zmiana d³ugoœci kroku na pocz¹tkowy
+				s = s0;
+			}
+
+			if (solution::f_calls > Nmax)
+			{
+				Xopt.flag = 0;
+				throw std::string("Maximum amount of f_calls reached!");
+			}
+		}
+
+		//Zapis danych do pliku
+		if (SAVE_CHART_DATA)
+			save_to_file("Rosen_chart.csv", ss.str());
 
 		return Xopt;
 	}
