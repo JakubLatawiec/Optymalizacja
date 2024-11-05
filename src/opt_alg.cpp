@@ -267,6 +267,7 @@ solution HJ(matrix(*ff)(matrix, matrix, matrix), matrix x0, double s, double alp
 {
 	try
 	{
+		//String builder do zapisu danych
 		std::stringstream ss{};
 
 		solution XT;
@@ -308,10 +309,8 @@ solution HJ(matrix(*ff)(matrix, matrix, matrix), matrix x0, double s, double alp
 			}
 			//Brak lepszego punktu
 			else
-			{
 				//Zmniejszenie kroku poszukiwañ
 				s = s * alpha;
-			}
 
 			if (solution::f_calls > Nmax)
 			{
@@ -380,7 +379,7 @@ solution Rosen(matrix(*ff)(matrix, matrix, matrix), matrix x0, matrix s0, double
 
 		solution Xopt;
 
-		//Funkcja pomocnicza szukaj¹ca maksunalnej wartoœci bezwzglêdnej w wektorze pionowym
+		//Funkcja pomocnicza szukaj¹ca maksymalnej wartoœci bezwzglêdnej w wektorze pionowym
 		auto max = [&](matrix m) -> double
 		{
 			int len = get_len(m);
@@ -431,12 +430,12 @@ solution Rosen(matrix(*ff)(matrix, matrix, matrix), matrix x0, matrix s0, double
 				{
 					XB = XT;
 					lambda(j) += s(j);
-					s(j) *= alpha;
+					s(j) *= alpha; //Ekspansja
 				}
-				//Zmiana kroku na przeciwny
+				//Brak lepszego punktu
 				else
 				{
-					s(j) *= -beta;
+					s(j) *= -beta; //Kontrakcja
 					p(j) += 1;
 				}
 			}
