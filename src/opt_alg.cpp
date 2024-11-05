@@ -539,7 +539,85 @@ solution sym_NM(matrix(*ff)(matrix, matrix, matrix), matrix x0, double s, double
 	try
 	{
 		solution Xopt;
-		//Tu wpisz kod funkcji
+		int n = get_dim(x0);
+		std::vector<matrix> simplex(n + 1, x0);
+
+		// Initialize simplex vertices
+		for (int i = 1; i <= n; ++i) {
+			matrix vertex = x0;
+			vertex(i - 1) += s;
+			simplex[i] = vertex;
+		}
+
+		solution opt_sol;
+		opt_sol.x = x0;
+
+		for (int iter = 0; iter < Nmax; ++iter) {
+			// Sort vertices by function value (including penalty)
+			std::sort(simplex.begin(), simplex.end(), [&](const matrix& a, const matrix& b) {
+				double a_val = ff(a, ud1, ud2)(0, 0);
+				double b_val = ff(b, ud1, ud2)(0, 0);
+
+				// Inline penalty calculations for constraints
+				double a_penalty = std::max(0.0, -a(0) + 1) + std::max(0.0, -a(1) + 1) + std::max(0.0, a(0) + a(1) - ud1(0, 0));
+				double b_penalty = std::max(0.0, -b(0) + 1) + std::max(0.0, -b(1) + 1) + std::max(0.0, b(0) + b(1) - ud1(0, 0));
+
+				return (a_val + a_penalty) < (b_val + b_penalty);
+				});
+
+			matrix pmin = simplex[0];
+			matrix pmax = simplex[n];
+			matrix centroid = matrix(n, 1);
+
+			for (int i = 0; i < n; ++i) {
+				if (i != n) centroid = centroid + simplex[i];
+			}
+			centroid = centroid * (1.0 / n);
+
+			// Reflection
+			matrix reflection = centroid + alpha * (centroid - pmax);
+			double reflection_penalty = std::max(0.0, -reflection(0) + 1) + std::max(0.0, -reflection(1) + 1) + std::max(0.0, reflection(0) + reflection(1) - ud1(0, 0));
+			if (ff(reflection, ud1, ud2)(0, 0) + reflection_penalty < ff(pmin, ud1, ud2)(0, 0)) {
+				// Expansion
+				matrix expansion = centroid + gamma * (reflection - centroid);
+				double expansion_penalty = std::max(0.0, -expansion(0) + 1) + std::max(0.0, -expansion(1) + 1) + std::max(0.0, expansion(0) + expansion(1) - ud1(0, 0));
+				if (ff(expansion, ud1, ud2)(0, 0) + expansion_penalty < ff(reflection, ud1, ud2)(0, 0) + reflection_penalty) {
+					simplex[n] = expansion;
+				}
+				else {
+					simplex[n] = reflection;
+				}
+			}
+			else if (ff(reflection, ud1, ud2)(0, 0) + reflection_penalty < ff(pmax, ud1, ud2)(0, 0)) {
+				simplex[n] = reflection;
+			}
+			else {
+				// Contraction
+				matrix contraction = centroid + beta * (pmax - centroid);
+				double contraction_penalty = std::max(0.0, -contraction(0) + 1) + std::max(0.0, -contraction(1) + 1) + std::max(0.0, contraction(0) + contraction(1) - ud1(0, 0));
+				if (ff(contraction, ud1, ud2)(0, 0) + contraction_penalty < ff(pmax, ud1, ud2)(0, 0)) {
+					simplex[n] = contraction;
+				}
+				else {
+					// Reduction
+					for (int i = 1; i <= n; ++i) {
+						simplex[i] = pmin + delta * (simplex[i] - pmin);
+					}
+				}
+			}
+
+			// Check convergence
+			double max_dist = 0.0;
+			for (int i = 0; i <= n; ++i) {
+				max_dist = std::max(max_dist, norm(simplex[i] - pmin));
+			}
+			if (max_dist < epsilon) break;
+		}
+
+		opt_sol.x = simplex[0];
+		opt_sol.y = ff(opt_sol.x, ud1, ud2);
+		return opt_sol;
+	
 
 
 		solution symplex[3];

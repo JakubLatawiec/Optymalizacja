@@ -198,3 +198,24 @@ matrix df2(double t, matrix Y, matrix ud1, matrix ud2)
 
 	return dY;
 }
+
+//LAB3
+#include "user_funs.h"
+#include "opt_alg.h"
+
+// Objective function with constraints for Lab 3
+matrix ff3T(matrix x, matrix ud1, matrix ud2) {
+	double a = ud1(0, 0); // Parameter a for constraint g3
+
+	// Calculate the main objective function value
+	double f_val = std::sin(M_PI * x(0)) + (x(1) / M_PI) + std::pow(x(0) * x(0) + x(1) * x(1), 0.25);
+
+	// Inline penalty calculations for constraints
+	double penalty = 0;
+	penalty += std::max(0.0, -x(0) + 1);        // g1(x) = -x1 + 1 <= 0
+	penalty += std::max(0.0, -x(1) + 1);        // g2(x) = -x2 + 1 <= 0
+	penalty += std::max(0.0, x(0) + x(1) - a);  // g3(x1, x2) = x1 + x2 - a <= 0
+
+	// Return the penalized objective function value
+	return matrix(1, 1, f_val + penalty);
+}

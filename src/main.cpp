@@ -26,7 +26,8 @@ int main()
 	{
 		//lab0();
 		//lab1();
-		lab2();
+		//lab2();
+		lab3();
 	}
 	catch (const string& EX_INFO)
 	{
@@ -355,7 +356,29 @@ void lab2()
 
 void lab3()
 {
+	double epsilon = 1e-3;
+	double s = 0.5;
+	double alpha = 1.0;
+	double beta = 0.5;
+	double gamma = 2.0;
+	double delta = 0.5;
+	int Nmax = 1000;
 
+	std::vector<double> a_values = { 4.0, 4.4934, 5.0 };
+
+	for (double a : a_values) {
+		std::cout << "Optimizations for a = " << a << ":\n";
+
+		matrix ud1 = matrix(1, 1, a); // Set parameter a for constraints
+		for (int i = 1; i <= 100; ++i) {
+			matrix x0 = matrix(2, new double[2] {(rand() % 100) / 100.0, (rand() % 100) / 100.0});
+
+			solution result = sym_NM(ff3T, x0, s, alpha, beta, gamma, delta, epsilon, Nmax, ud1);
+
+			double r = norm(result.x);
+			std::cout << "Iteration " << i << ": x* = [" << result.x(0, 0) << ", " << result.x(1, 0) << "], f(x*) = " << result.y(0, 0) << ", r = " << r << "\n";
+		}
+	}
 }
 
 void lab4()
