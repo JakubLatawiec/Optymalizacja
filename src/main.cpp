@@ -25,7 +25,8 @@ int main()
 	try
 	{
 		//lab0();
-		lab1();
+		//lab1();
+		lab2();
 	}
 	catch (const string& EX_INFO)
 	{
@@ -36,50 +37,50 @@ int main()
 	return 0;
 }
 
-void lab0()
-{
-
-#ifdef SAVE_TO_FILE
-	create_environment("lab00");
-#endif
-
-#ifdef CALC_TEST
-	//Funkcja testowa
-	double epsilon = 1e-2;
-	int Nmax = 10000;
-	matrix lb(2, 1, -5), ub(2, 1, 5), a(2, 1);
-	solution opt;
-	a(0) = -1;
-	a(1) = 2;
-	opt = MC(ff0T, 2, lb, ub, epsilon, Nmax, a);
-	cout << opt << endl << endl;
-	solution::clear_calls();
-#endif
-
-	
-#ifdef CALC_SIMULATION
-	//Wahadlo
-	Nmax = 1000;
-	epsilon = 1e-2;
-	lb = 0;
-	ub = 5;
-	double teta_opt = 1;
-	opt = MC(ff0R, 1, lb, ub, epsilon, Nmax, teta_opt);
-	cout << opt << endl << endl;
-	solution::clear_calls();
-
-	//Zapis symulacji do pliku csv
-	matrix Y0 = matrix(2, 1), MT = matrix(2, new double[2] { m2d(opt.x), 0.5 });
-	matrix* Y = solve_ode(df0, 0, 0.1, 10, Y0, NAN, MT);
-
-#ifdef SAVE_TO_FILE
-	save_to_file("simulation.csv", hcat(Y[0], Y[1]));
-#endif
-
-	Y[0].~matrix();
-	Y[1].~matrix();
-#endif
-}
+//void lab0()
+//{
+//
+//#ifdef SAVE_TO_FILE
+//	create_environment("lab00");
+//#endif
+//
+//#ifdef CALC_TEST
+//	//Funkcja testowa
+//	double epsilon = 1e-2;
+//	int Nmax = 10000;
+//	matrix lb(2, 1, -5), ub(2, 1, 5), a(2, 1);
+//	solution opt;
+//	a(0) = -1;
+//	a(1) = 2;
+//	opt = MC(ff0T, 2, lb, ub, epsilon, Nmax, a);
+//	cout << opt << endl << endl;
+//	solution::clear_calls();
+//#endif
+//
+//	
+//#ifdef CALC_SIMULATION
+//	//Wahadlo
+//	Nmax = 1000;
+//	epsilon = 1e-2;
+//	lb = 0;
+//	ub = 5;
+//	double teta_opt = 1;
+//	opt = MC(ff0R, 1, lb, ub, epsilon, Nmax, teta_opt);
+//	cout << opt << endl << endl;
+//	solution::clear_calls();
+//
+//	//Zapis symulacji do pliku csv
+//	matrix Y0 = matrix(2, 1), MT = matrix(2, new double[2] { m2d(opt.x), 0.5 });
+//	matrix* Y = solve_ode(df0, 0, 0.1, 10, Y0, NAN, MT);
+//
+//#ifdef SAVE_TO_FILE
+//	save_to_file("simulation.csv", hcat(Y[0], Y[1]));
+//#endif
+//
+//	Y[0].~matrix();
+//	Y[1].~matrix();
+//#endif
+//}
 
 void lab1()
 {
@@ -240,6 +241,116 @@ void lab1()
 void lab2()
 {
 
+#ifdef SAVE_TO_FILE
+	create_environment("lab02");
+#endif
+
+	//Dane dokładności wyników
+	double s = 0.1;
+	double alpha = 0.1;
+	double beta = 0.1;
+	double epsilon = 1E-6;
+	double Nmax = 2000;
+	double alphaRosen = 1.2;
+
+#ifdef CALC_TEST
+
+	//Generator liczb losowych
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> x0_dist(-1.0, 1.0);
+
+	//Stringstream do zapisu danych
+	std::stringstream test_ss;
+
+	//Rozwiązanie dla wyników testowych
+	solution test_sol;
+
+	//Dane dokładności dla testów
+	double test_s = 0.1;
+
+	//Punty startowe dla testów
+	matrix test_x0{};
+
+	//Liczenie testów
+	for (int i = 0; i < 3; ++i)
+	{
+		for (int j = 0; j < 100; ++j)
+		{
+			test_x0 = matrix(2, new double[2] {x0_dist(gen), x0_dist(gen)});
+			test_sol = HJ(ff2T, test_x0, s, alpha, epsilon, Nmax);
+			test_ss << test_x0(0) << ";" << test_x0(1) << ";" << m2d(test_sol.x(0)) << ";" << m2d(test_sol.x(1)) << ";" << m2d(test_sol.y) << ";" << test_sol.f_calls << ";" << (abs(m2d(test_sol.x(0))) < 0.01 && abs(m2d(test_sol.x(1))) < 0.01 ? "TAK" : "NIE") << ";";
+			solution::clear_calls();
+			test_sol = Rosen(ff2T, test_x0, matrix(2, new double[2] {s, s}), alphaRosen, beta, epsilon, Nmax);
+			test_ss << m2d(test_sol.x(0)) << ";" << m2d(test_sol.x(1)) << ";" << m2d(test_sol.y) << ";" << test_sol.f_calls << ";" << (abs(m2d(test_sol.x(0))) < 0.01 && abs(m2d(test_sol.x(1))) < 0.01 ? "TAK" : "NIE") << "\n";
+			solution::clear_calls();
+		}
+
+		//Zapis do pliku
+#ifdef SAVE_TO_FILE
+		save_to_file("test_s_" + std::to_string(test_s) + ".csv", test_ss.str());
+#endif
+
+		//Czyszczenie zawartoci ss
+		test_ss.str(std::string());
+
+		//Zmiana długości kroku
+		test_s += 0.6;
+	}
+
+
+	//Liczenie danych do wykresów
+	SAVE_CHART_DATA = true;
+
+	//Wspólny punkt dla obu metod
+	test_x0 = matrix(2, new double[2] {0.45, 0.45});
+
+	HJ(ff2T, test_x0, s, alpha, epsilon, Nmax);
+	solution::clear_calls();
+
+	Rosen(ff2T, test_x0, matrix(2, new double[2] {s, s}), alphaRosen, beta, epsilon, Nmax);
+	solution::clear_calls();
+
+	SAVE_CHART_DATA = false;
+#endif
+
+#ifdef CALC_SIMULATION
+
+	//Dane symulacji
+	matrix ud1 = matrix(6, new double[6] {
+		1.0, //Długość ramienia (l) [m]
+		1.0, //Masa ramienia (m_r) [kg]
+		5.0, //Masa ciężarka (m_c) [kg]
+		0.5, //Współczynnik tarcia (b) [Nms]
+		3.14, //Referencyjny kąt (alpha_ref) [rad]
+		0.0 //Referencyjna prędkość kątowa (omega_ref) [rad/s] 
+	});
+
+	//Początkowe wartości współczynników
+	matrix k_0 = matrix(2, new double[2] {1.0, 1.0});
+
+	//Warunki początkowe rónwe 0.0
+	matrix Y0 = matrix(2, 1);
+
+	//Wyliczanie optymalnych wartości współczynników metodą HJ
+	solution opt = HJ(ff2R, k_0, s, alpha, epsilon, Nmax, ud1);
+	std::cout << opt << "\n";
+	solution::clear_calls();
+	matrix* Y = solve_ode(df2, 0.0, 0.1, 100.0, Y0, ud1, opt.x);
+#ifdef SAVE_TO_FILE
+	save_to_file("simulation_HJ.csv", hcat(Y[0], Y[1]));
+#endif
+
+	//Wyliczanie optymalnych wartości współczynników metodą Rosenbrocka
+	opt = Rosen(ff2R, k_0, matrix(2, new double[2]{s, s}), alphaRosen, beta, epsilon, Nmax, ud1);
+	std::cout << opt << "\n";
+	solution::clear_calls();
+	Y = solve_ode(df2, 0.0, 0.1, 100.0, Y0, ud1, opt.x);
+#ifdef SAVE_TO_FILE
+	save_to_file("simulation_Rosen.csv", hcat(Y[0], Y[1]));
+#endif
+
+#endif
 }
 
 void lab3()
