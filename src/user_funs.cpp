@@ -150,12 +150,14 @@ matrix ff2R(matrix x, matrix ud1, matrix ud2)
 	//Warunki początkowe
 	matrix Y0 = matrix(2, 1);
 
+	//Symulacja
 	matrix* Y = solve_ode(df2, 0.0, 0.1, 100, Y0, ud1, x);
 
+	//Dane referencyjne
 	double alpha_ref = ud1(4);
 	double omega_ref = ud1(5);
 
-	//Liczenie całki metodą prostokątów
+	//Obliczanie funkjconału jakości metodą prostokątów
 	int n = get_len(Y[0]);
 	for (int i = 0; i < n; ++i)
 	{
