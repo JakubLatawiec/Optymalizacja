@@ -413,6 +413,9 @@ solution Rosen(matrix(*ff)(matrix, matrix, matrix), matrix x0, matrix s0, double
 		XB.x = x0;
 		XB.fit_fun(ff, ud1, ud2);
 
+		if (SAVE_CHART_DATA)
+			ss << m2d(XB.x(0)) << ";" << m2d(XB.x(1)) << "\n";
+
 		while (max(s) >= epsilon)
 		{
 			//Poszukiwanie lepszego minimum po ka¿dym kierunku funkcji
@@ -537,6 +540,9 @@ solution sym_NM(matrix(*ff)(matrix, matrix, matrix), matrix x0, double s, double
 	{
 		solution Xopt;
 		//Tu wpisz kod funkcji
+
+
+		solution symplex[3];
 
 		return Xopt;
 	}
