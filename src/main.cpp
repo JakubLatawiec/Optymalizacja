@@ -26,7 +26,8 @@ int main()
 	{
 		//lab0();
 		//lab1();
-		lab2();
+		//lab2();
+		lab3();
 	}
 	catch (const string& EX_INFO)
 	{
@@ -355,7 +356,8 @@ void lab2()
 
 void lab3()
 {
-
+	matrix x0 = matrix(2, new double[2] {6.0, 6.0});
+	std::cout << ff3T(x0);
 }
 
 void lab4()

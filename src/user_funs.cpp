@@ -200,3 +200,12 @@ matrix df2(double t, matrix Y, matrix ud1, matrix ud2)
 
 	return dY;
 }
+
+//LAB 3
+
+matrix ff3T(matrix x, matrix ud1, matrix ud2)
+{
+	matrix y;
+	y = (sin(M_PI * sqrt(pow(x(0) / M_PI, 2) + pow(x(1) / M_PI, 2)))) / (M_PI * sqrt(pow(x(0) / M_PI, 2) + pow(x(1) / M_PI, 2)));
+	return y;
+}
