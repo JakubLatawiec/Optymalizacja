@@ -522,10 +522,42 @@ solution Rosen(matrix(*ff)(matrix, matrix, matrix), matrix x0, matrix s0, double
 solution pen(matrix(*ff)(matrix, matrix, matrix), matrix x0, double c, double dc, double epsilon, int Nmax, matrix ud1, matrix ud2)
 {
 	try {
-		solution Xopt;
-		//Tu wpisz kod funkcji
+		solution XB;
+		XB.x = x0;
+		XB.fit_fun(ff);
 
-		return Xopt;
+		solution XT;
+		XT = XB;
+
+		int i = 0;
+
+		double s = 0.5; //D³ugoœæ boku trójk¹ta
+		double alpha = 1.0; //Wspó³czynnik odbicia
+		double beta = 0.5; //Wspó³czynnik zwê¿enia
+		double gamma = 2.0; //Wspó³czynnik ekspansji
+		double delta = 0.5; //Wspó³czynnik redukcji
+
+		do
+		{
+			i++;
+			XT.x = XB.x;
+			XT = sym_NM(ff, XB.x, s, alpha, beta, gamma, delta, epsilon, Nmax, 5.0, c);
+			c *= dc;
+
+			if (solution::f_calls > Nmax)
+			{
+				XT.flag = 0;
+				throw std::string("Maximum amount of f_calls reached!");
+			}
+
+			if (norm(XT.x - XB.x) < epsilon)
+				break;
+
+			XB = XT;
+
+		} while (true);
+
+		return XT;
 	}
 	catch (string ex_info)
 	{
@@ -537,13 +569,114 @@ solution sym_NM(matrix(*ff)(matrix, matrix, matrix), matrix x0, double s, double
 {
 	try
 	{
-		solution Xopt;
-		//Tu wpisz kod funkcji
+		auto max = [&](std::vector<solution> sim, int i_min) -> double
+		{
+			double result = 0.0;
+			for (int i = 0; i < sim.size(); ++i)
+			{
+				double normal = norm(sim[i_min].x - sim[i].x);
+				if (result < normal)
+					result = normal;
+			}
+			return result;
+		};
+		
+		int n = get_len(x0);
 
+		//Tworzenie bazy ortogonalnej
+		matrix d = matrix(n, n);
+		for (int i = 0; i < n; ++i)
+			d(i, i) = 1.0;
 
-		solution symplex[3];
+		//Tworzenie simplexu i uzupe³nianie go danymi
+		std::vector<solution> simplex;
+		simplex.resize(n + 1);
+		simplex[0].x = x0;
+		simplex[0].fit_fun(ff, ud1, ud2);
+		for (int i = 1; i < simplex.size(); ++i)
+		{
+			simplex[i].x = simplex[0].x + s * d[i - 1];
+			simplex[i].fit_fun(ff, ud1, ud2);
+		}
 
-		return Xopt;
+		//Indeks najmniejszej wartoœci wierzcho³ka simplexu
+		int i_min{};
+		//Indeks najwiêkszej wartoœci wierzcho³ka simplexu
+		int i_max{};
+
+		while (max(simplex, i_min) >= epsilon)
+		{
+			//Wyznaczanie maksymalnego i minimalnego indeksu
+			i_min = 0;
+			i_max = 0;
+			for (int i = 1; i < simplex.size(); ++i)
+			{
+				if (simplex[i].y < simplex[i_min].y)
+					i_min = i;
+				if (simplex[i].y > simplex[i_max].y)
+					i_max = i;
+			}
+
+			//Wyznaczenie œrodka ciê¿koœci
+			matrix simplex_CoG{};
+			for (int i = 0; i < simplex.size(); ++i)
+			{
+				if (i == i_max)
+					continue;
+				simplex_CoG = simplex_CoG + simplex[i].x;
+			}
+			simplex_CoG = simplex_CoG / simplex.size();
+
+			//Obliczanie wartoœci funkcji odbitego simplexu
+			solution simplex_reflected{};
+			simplex_reflected.x = simplex_CoG + alpha * (simplex_CoG - simplex[i_max].x);
+			simplex_reflected.fit_fun(ff, ud1, ud2);
+
+			if (simplex_reflected.y < simplex[i_min].y)
+			{
+				solution simplex_expansion{};
+				simplex_expansion.x = simplex_CoG + gamma * (simplex_reflected.x - simplex_CoG);
+				simplex_expansion.fit_fun(ff, ud1, ud2);
+				if (simplex_expansion.y < simplex_reflected.y)
+					simplex[i_max] = simplex_expansion;
+				else
+					simplex[i_max] = simplex_reflected;
+			}
+			else
+			{
+				if (simplex[i_min].y <= simplex_reflected.y && simplex_reflected.y < simplex[i_max].y)
+					simplex[i_max] = simplex_reflected;
+				else
+				{
+					solution simplex_narrowed{};
+					simplex_narrowed.x = simplex_CoG + beta * (simplex[i_max].x - simplex_CoG);
+					simplex_narrowed.fit_fun(ff, ud1, ud2);
+					if (simplex_narrowed.y >= simplex[i_max].y)
+					{
+						for (int i = 0; i < simplex.size(); ++i)
+						{
+							if (i == i_min)
+								continue;
+							simplex[i].x = delta * (simplex[i].x + simplex[i_min].x);
+							simplex[i].fit_fun(ff, ud1, ud2);
+						}
+					}
+					else
+						simplex[i_max] = simplex_narrowed;
+				}
+			}
+
+			if (solution::f_calls > Nmax)
+			{
+				simplex[i_min].flag = 0;
+				throw std::string("Maximum amount of f_calls reached!");
+			}
+
+		}
+
+		//std::cout << simplex[i_min] << "\n";
+
+		return simplex[i_min];
 	}
 	catch (string ex_info)
 	{

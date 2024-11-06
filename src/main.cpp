@@ -356,8 +356,23 @@ void lab2()
 
 void lab3()
 {
-	matrix x0 = matrix(2, new double[2] {6.0, 6.0});
-	std::cout << ff3T(x0);
+	double epsilon = 1E-6;
+	int Nmax = 5000;
+	double c = 0.5;
+	double dc = 0.1;
+
+	//Generator liczb losowych
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> x0_dist(1.0, 6.0);
+
+	for (int j = 0; j < 20; ++j)
+	{
+		matrix x0 = matrix(2, new double[2] {x0_dist(gen), x0_dist(gen)});
+		std::cout << x0(0) << " " << x0(1) << "\n";
+		std::cout << pen(ff3T_inside, x0, c, dc, epsilon, Nmax) << "\n";
+		solution::clear_calls();
+	}
 }
 
 void lab4()

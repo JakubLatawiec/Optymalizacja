@@ -14,5 +14,6 @@ matrix ff2T(matrix, matrix = NAN, matrix = NAN);
 matrix ff2R(matrix, matrix = NAN, matrix = NAN);
 matrix df2(double, matrix, matrix = NAN, matrix = NAN);
 
-matrix ff3T(matrix, matrix = NAN, matrix = NAN);
+matrix ff3T_outside(matrix, matrix = NAN, matrix = NAN);
+matrix ff3T_inside(matrix, matrix = NAN, matrix = NAN);
 

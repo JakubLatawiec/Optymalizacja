@@ -203,9 +203,50 @@ matrix df2(double t, matrix Y, matrix ud1, matrix ud2)
 
 //LAB 3
 
-matrix ff3T(matrix x, matrix ud1, matrix ud2)
+matrix ff3T_outside(matrix x, matrix ud1, matrix ud2)
 {
 	matrix y;
 	y = (sin(M_PI * sqrt(pow(x(0) / M_PI, 2) + pow(x(1) / M_PI, 2)))) / (M_PI * sqrt(pow(x(0) / M_PI, 2) + pow(x(1) / M_PI, 2)));
+
+	double a = m2d(ud1);
+	double c = m2d(ud2);
+
+	//g1
+	if (-x(0) + 1 > 0)
+		y = y + c * pow(-x(0) + 1, 2);
+	//g2
+	if (-x(1) + 1 > 0)
+		y = y + c * pow(-x(1) + 1, 2);
+	//g3
+	if (norm(x) - a > 0)
+		y = y + c * pow(norm(x) - a, 2);
+
+	return y;
+}
+
+matrix ff3T_inside(matrix x, matrix ud1, matrix ud2)
+{
+	matrix y;
+	y = (sin(M_PI * sqrt(pow(x(0) / M_PI, 2) + pow(x(1) / M_PI, 2)))) / (M_PI * sqrt(pow(x(0) / M_PI, 2) + pow(x(1) / M_PI, 2)));
+
+	double a = m2d(ud1);
+	double c = m2d(ud2);
+
+	//g1
+	if (-x(0) + 1 > 0)
+		y = 1E10;
+	else
+		y = y - c / (-x(0) + 1);
+	//g2
+	if (-x(1) + 1 > 0)
+		y = 1E10;
+	else
+		y = y - c / (-x(1) + 1);
+	//g3
+	if (norm(x) - a > 0)
+		y = 1E10;
+	else
+		y = y - c / (norm(x) - a);
+
 	return y;
 }
