@@ -524,12 +524,10 @@ solution pen(matrix(*ff)(matrix, matrix, matrix), matrix x0, double c, double dc
 	try {
 		solution XB;
 		XB.x = x0;
-		XB.fit_fun(ff);
+		XB.fit_fun(ff, ud1, ud2);
 
 		solution XT;
 		XT = XB;
-
-		int i = 0;
 
 		double s = 0.5; //D³ugoœæ boku trójk¹ta
 		double alpha = 1.0; //Wspó³czynnik odbicia
@@ -539,9 +537,8 @@ solution pen(matrix(*ff)(matrix, matrix, matrix), matrix x0, double c, double dc
 
 		do
 		{
-			i++;
 			XT.x = XB.x;
-			XT = sym_NM(ff, XB.x, s, alpha, beta, gamma, delta, epsilon, Nmax, 5.0, c);
+			XT = sym_NM(ff, XB.x, s, alpha, beta, gamma, delta, epsilon, Nmax, ud1, c);
 			c *= dc;
 
 			if (solution::f_calls > Nmax)
@@ -554,7 +551,6 @@ solution pen(matrix(*ff)(matrix, matrix, matrix), matrix x0, double c, double dc
 				break;
 
 			XB = XT;
-
 		} while (true);
 
 		return XT;
@@ -569,6 +565,7 @@ solution sym_NM(matrix(*ff)(matrix, matrix, matrix), matrix x0, double s, double
 {
 	try
 	{
+		//Funkcja pomocnicza do znajdywania maksymum normy
 		auto max = [&](std::vector<solution> sim, int i_min) -> double
 		{
 			double result = 0.0;
@@ -634,6 +631,7 @@ solution sym_NM(matrix(*ff)(matrix, matrix, matrix), matrix x0, double s, double
 
 			if (simplex_reflected.y < simplex[i_min].y)
 			{
+				//Obliczanie wartoœci funkcji powiêkszonego simplexu
 				solution simplex_expansion{};
 				simplex_expansion.x = simplex_CoG + gamma * (simplex_reflected.x - simplex_CoG);
 				simplex_expansion.fit_fun(ff, ud1, ud2);
@@ -648,6 +646,7 @@ solution sym_NM(matrix(*ff)(matrix, matrix, matrix), matrix x0, double s, double
 					simplex[i_max] = simplex_reflected;
 				else
 				{
+					//Obliczanie wartoœci funkcji pomniejszonego simplexu
 					solution simplex_narrowed{};
 					simplex_narrowed.x = simplex_CoG + beta * (simplex[i_max].x - simplex_CoG);
 					simplex_narrowed.fit_fun(ff, ud1, ud2);
@@ -673,8 +672,6 @@ solution sym_NM(matrix(*ff)(matrix, matrix, matrix), matrix x0, double s, double
 			}
 
 		}
-
-		//std::cout << simplex[i_min] << "\n";
 
 		return simplex[i_min];
 	}
