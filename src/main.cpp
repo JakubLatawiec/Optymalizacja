@@ -27,7 +27,8 @@ int main()
 		//lab0();
 		//lab1();
 		//lab2();
-		lab3();
+		//lab3();
+		lab4();
 	}
 	catch (const string& EX_INFO)
 	{
@@ -354,6 +355,27 @@ void lab2()
 #endif
 }
 
+
+
+
+std::string solution_to_string(const solution& sol) {
+	std::ostringstream oss;
+
+	oss << "x = ";
+	for (int i = 0; i < get_len(sol.x); ++i) {
+		oss << sol.x(i, 0) << (i < get_len(sol.x) - 1 ? ", " : "");
+	}
+	oss << "\n";
+
+	oss << "y = " << sol.y(0, 0) << "\n";
+	oss << "Exit flag = " << sol.flag << "\n";
+
+	return oss.str();
+}
+
+
+
+
 void lab3()
 {
 	double epsilon = 1e-3;
@@ -381,10 +403,40 @@ void lab3()
 	}
 }
 
-void lab4()
-{
+void lab4() {
+#ifdef SAVE_TO_FILE
+	create_environment("lab04");
+#endif
 
+	double epsilon = 1e-6;
+	double h0 = 0.05;
+	double a = 0.0;
+	double b = 1.0;
+	int Nmax = 1000;
+
+	matrix x0 = matrix(2, new double[2] {0.0, 0.0});
+	matrix ud1 = NAN;
+	matrix ud2 = NAN;
+
+	solution grad_result = CG(ff4T, gf4T, x0, h0, epsilon, Nmax, ud1, ud2);
+	std::cout << "Gradient Calculation Result:\n" << grad_result << "\n";
+
+	solution golden_result = golden(ff4T, a, b, epsilon, Nmax, ud1, ud2);
+	std::cout << "Golden Section Search Result:\n" << golden_result << "\n";
+
+	solution sd_result = SD(ff4T, gf4T, x0, h0, epsilon, Nmax, ud1, ud2);
+	std::cout << "Steepest Descent Result:\n" << sd_result << "\n";
+
+#ifdef SAVE_TO_FILE
+	save_to_file("lab4_gradient.csv", solution_to_string(grad_result));
+	save_to_file("lab4_golden.csv", solution_to_string(golden_result));
+	save_to_file("lab4_SD.csv", solution_to_string(sd_result));
+#endif
 }
+
+
+
+
 
 void lab5()
 {
@@ -395,3 +447,7 @@ void lab6()
 {
 
 }
+
+
+
+

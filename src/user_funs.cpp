@@ -219,3 +219,23 @@ matrix ff3T(matrix x, matrix ud1, matrix ud2) {
 	// Return the penalized objective function value
 	return matrix(1, 1, f_val + penalty);
 }
+
+matrix gf4T(matrix x, matrix ud1, matrix ud2) {
+	double x1 = x(0, 0);
+	double x2 = x(1, 0);
+
+	double df_dx1 = 2 * (x1 + 2 * x2 - 7) + 4 * (2 * x1 + x2 - 5);
+	double df_dx2 = 4 * (x1 + 2 * x2 - 7) + 2 * (2 * x1 + x2 - 5);
+
+	return matrix(2, new double[2] {df_dx1, df_dx2});
+}
+
+matrix ff4T(matrix x, matrix ud1, matrix ud2) {
+	double x1 = x(0, 0);
+	double x2 = x(1, 0);
+
+	double f_val = pow(x1 + 2 * x2 - 7, 2) + pow(2 * x1 + x2 - 5, 2);
+
+	return matrix(1, 1, f_val);
+}
+

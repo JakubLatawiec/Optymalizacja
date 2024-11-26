@@ -634,10 +634,56 @@ solution SD(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix, mat
 {
 	try
 	{
-		solution Xopt;
-		//Tu wpisz kod funkcji
+		int iter = 0;
+		matrix x = x0;
+		solution opt_sol;
 
-		return Xopt;
+		while (iter < Nmax) {
+			matrix grad = gf(x, ud1, ud2); // Gradient computation
+			matrix d = -grad; // Steepest descent direction
+
+			double h = h0; // Initialize step size
+			double a = 0.0, b = 1.0; // Golden section bounds
+			double alpha = (sqrt(5) - 1) / 2; // Golden ratio
+
+			// Golden section search for step size
+			double c = b - alpha * (b - a);
+			double d_step = a + alpha * (b - a);
+
+			while ((b - a) > epsilon) {
+				matrix xc = x + c * d;
+				matrix xd = x + d_step * d;
+
+				if (ff(xc, ud1, ud2)(0, 0) < ff(xd, ud1, ud2)(0, 0)) {
+					b = d_step;
+					d_step = c;
+					c = b - alpha * (b - a);
+				}
+				else {
+					a = c;
+					c = d_step;
+					d_step = a + alpha * (b - a);
+				}
+			}
+
+			h = (a + b) / 2.0;
+
+			// Update position
+			matrix x_next = x + h * d;
+
+			// Check for convergence
+			if (norm(x_next - x) < epsilon) break;
+
+			x = x_next;
+			iter++;
+		}
+
+		opt_sol.x = x;
+		opt_sol.y = ff(opt_sol.x, ud1, ud2);
+		opt_sol.flag = (iter < Nmax) ? 0 : -1;
+
+		return opt_sol;
+
 	}
 	catch (string ex_info)
 	{
@@ -649,10 +695,15 @@ solution CG(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix, mat
 {
 	try
 	{
-		solution Xopt;
-		//Tu wpisz kod funkcji
+		matrix grad = gf(x0, ud1, ud2);
 
-		return Xopt;
+		solution grad_sol;
+		grad_sol.x = x0;
+		grad_sol.y = grad;
+		grad_sol.flag = 0;
+
+		return grad_sol;
+
 	}
 	catch (string ex_info)
 	{
@@ -680,10 +731,38 @@ solution golden(matrix(*ff)(matrix, matrix, matrix), double a, double b, double 
 {
 	try
 	{
-		solution Xopt;
-		//Tu wpisz kod funkcji
+		double alpha = (sqrt(5) - 1) / 2;
+		double c = b - alpha * (b - a);
+		double d_step = a + alpha * (b - a);
 
-		return Xopt;
+		int iter = 0;
+		matrix x = matrix(2, 1); // Initialize with a dummy matrix (use ud1 or ud2 if necessary)
+
+		while ((b - a) > epsilon && iter < Nmax) {
+			matrix xc = x + c * ud1;  // Replace `ud1` with the gradient or direction matrix if applicable
+			matrix xd = x + d_step * ud1;
+
+			if (ff(xc, ud1, ud2)(0, 0) < ff(xd, ud1, ud2)(0, 0)) {
+				b = d_step;
+				d_step = c;
+				c = b - alpha * (b - a);
+			}
+			else {
+				a = c;
+				c = d_step;
+				d_step = a + alpha * (b - a);
+			}
+			iter++;
+		}
+
+		double h_opt = (a + b) / 2.0;
+
+		solution golden_sol;
+		golden_sol.x = matrix(1, 1, h_opt);
+		golden_sol.y = ff(x + h_opt * ud1, ud1, ud2);
+		golden_sol.flag = 0;
+
+		return golden_sol;
 	}
 	catch (string ex_info)
 	{
