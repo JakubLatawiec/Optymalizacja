@@ -26,7 +26,8 @@ int main()
 	{
 		//lab0();
 		//lab1();
-		lab2();
+		//lab2();
+		lab3();
 	}
 	catch (const string& EX_INFO)
 	{
@@ -356,6 +357,93 @@ void lab2()
 void lab3()
 {
 
+#ifdef SAVE_TO_FILE
+	create_environment("lab03");
+#endif
+
+	//Dane dokładnościowe
+	double epsilon = 1E-3;
+	int Nmax = 10000;
+	double c_inside = 100;
+	double dc_inside = 0.2;
+	double c_outside = 1.0;
+	double dc_outside = 1.5;
+
+#ifdef CALC_TEST	
+	//Generator liczb losowych
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> x0_dist(1.5, 5.5);
+
+	//Stringstream do zapisu danych
+	std::stringstream test_ss;
+
+	//Rozwiązanie dla wyników testowych
+	solution test_sol;
+
+	//Dane a dla testów
+	matrix a = matrix(4.0);
+
+	//Punty startowe dla testów
+	matrix test_x0{};
+	
+	for (int i = 0; i < 3; ++i)
+	{
+		if (i == 0)
+			a = matrix(4.0);
+		else if (i == 1)
+			a = matrix(4.4934);
+		else
+			a = matrix(5.0);
+
+		for (int j = 0; j < 100; ++j)
+		{
+			test_x0 = matrix(2, new double[2] {x0_dist(gen), x0_dist(gen)});
+			test_ss << test_x0(0) << ";" << test_x0(1) << ";";
+			test_sol = pen(ff3T_outside, test_x0, c_outside, dc_outside, epsilon, Nmax, a);
+			test_ss << test_sol.x(0) << ";" << test_sol.x(1) << ";" << sqrt(pow(test_sol.x(0), 2) + pow(test_sol.x(1), 2)) << ";" << test_sol.y << test_sol.f_calls << ";";
+			solution::clear_calls();
+			test_sol = pen(ff3T_inside, test_x0, c_inside, dc_inside, epsilon, Nmax, a);
+			test_ss << test_sol.x(0) << ";" << test_sol.x(1) << ";" << sqrt(pow(test_sol.x(0), 2) + pow(test_sol.x(1), 2)) << ";" << test_sol.y << test_sol.f_calls << "\n";
+			solution::clear_calls();
+		}
+
+#ifdef SAVE_TO_FILE
+		save_to_file("test_a_" + std::to_string(m2d(a)) + ".csv", test_ss.str());
+#endif
+
+		//Czyszczenie zawartoci ss
+		test_ss.str(std::string());
+	}
+
+#endif
+
+#ifdef CALC_SIMULATION
+	//Dane zadania
+	matrix ud1 = matrix(5, new double[5] {
+		0.47, //Współczynnik oporu (C) [-]
+		1.2, //Gęstość powietrza (rho) [kg/m^3]
+		0.12, //Promień piłki (r) [m]
+		0.6, //Masa piłki (m) [kg]
+		9.81 //Przyśpieszenie ziemskie (g) [m/s^2]
+	});
+
+	//Początkowe wartości szukania minimum
+	matrix x0 = matrix(2, new double[2] {-5.0, 5.0});
+
+	//Szukanie optymalnej prędkości początkowej po osi x i początkowej prędkości obrotowej
+	solution opt = pen(ff3R, x0, c_outside, dc_outside, epsilon, Nmax, ud1);
+	std::cout << opt << "\n";
+
+	//Symulacja lotu piłki dla wyznaczonych ograniczeń
+	matrix Y0(4, new double[4] {0.0, opt.x(0), 100, 0});
+	matrix* Y = solve_ode(df3, 0.0, 0.01, 7.0, Y0, ud1, opt.x(1));
+
+#ifdef SAVE_TO_FILE
+	save_to_file("simulation.csv", hcat(Y[0], Y[1]));
+#endif
+
+#endif
 }
 
 void lab4()
