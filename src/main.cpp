@@ -27,7 +27,8 @@ int main()
 		//lab0();
 		//lab1();
 		//lab2();
-		lab3();
+		//lab3();
+		lab4();
 	}
 	catch (const string& EX_INFO)
 	{
@@ -448,7 +449,44 @@ void lab3()
 
 void lab4()
 {
+	matrix x0 = matrix(2, new double[2] {-10.0, -10.0});
+	double h0 = 0.05;
+	double epsilon = 1E-8;
+	int Nmax = 10000;
 
+	std::cout << "SD: Metoda stalokrokowa:\n";
+	solution sd = SD(ff4T, gf4T, x0, h0, epsilon, Nmax);
+	std::cout << sd << "\n";
+
+	solution::clear_calls();
+
+	std::cout << "\nSD: Metoda zmiennokrokowa:\n";
+	sd = SD(ff4T, gf4T, x0, 0.0, epsilon, Nmax);
+	std::cout << sd << "\n";
+
+	solution::clear_calls();
+
+	std::cout << "\nCG: Metoda stalokrokowa:\n";
+	solution cg = CG(ff4T, gf4T, x0, h0, epsilon, Nmax);
+	std::cout << cg << "\n";
+
+	solution::clear_calls();
+
+	std::cout << "\nCG: Metoda zmiennokrokowa:\n";
+	cg = CG(ff4T, gf4T, x0, 0.0, epsilon, Nmax);
+	std::cout << cg << "\n";
+
+	solution::clear_calls();
+
+	std::cout << "\nNEWTON: Metoda stalokrokowa:\n";
+	solution newton = Newton(ff4T, gf4T, hf4T, x0, h0, epsilon, Nmax);
+	std::cout << newton << "\n";
+
+	solution::clear_calls();
+
+	std::cout << "\nNEWTON: Metoda zmiennokrokowa:\n";
+	newton = Newton(ff4T, gf4T, hf4T, x0, 0.0, epsilon, Nmax);
+	std::cout << newton << "\n";
 }
 
 void lab5()
