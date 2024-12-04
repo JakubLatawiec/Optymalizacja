@@ -233,12 +233,12 @@ matrix ff3T_inside(matrix x, matrix ud1, matrix ud2)
 	double c = m2d(ud2);
 
 	//g1
-	if (-x(0) + 1 > 0)
+	if (-x(0) + 1 >= 0)
 		y = 1E10;
 	else
 		y = y - c / (-x(0) + 1);
 	//g2
-	if (-x(1) + 1 > 0)
+	if (-x(1) + 1 >= 0)
 		y = 1E10;
 	else
 		y = y - c / (-x(1) + 1);

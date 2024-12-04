@@ -369,7 +369,6 @@ void lab3()
 	double c_outside = 1.0;
 	double dc_outside = 1.5;
 
-
 #ifdef CALC_TEST	
 	//Generator liczb losowych
 	std::random_device rd;

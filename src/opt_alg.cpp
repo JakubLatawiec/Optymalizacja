@@ -524,7 +524,7 @@ solution pen(matrix(*ff)(matrix, matrix, matrix), matrix x0, double c, double dc
 	try {
 		solution XB;
 		XB.x = x0;
-		XB.fit_fun(ff, ud1, ud2);
+		XB.fit_fun(ff, ud1, c);
 
 		solution XT;
 		XT = XB;
@@ -537,7 +537,6 @@ solution pen(matrix(*ff)(matrix, matrix, matrix), matrix x0, double c, double dc
 
 		do
 		{
-			XT.x = XB.x;
 			XT = sym_NM(ff, XB.x, s, alpha, beta, gamma, delta, epsilon, Nmax, ud1, c);
 			c *= dc;
 
