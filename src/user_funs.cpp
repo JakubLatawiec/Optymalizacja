@@ -334,7 +334,12 @@ matrix gf4T(matrix x, matrix ud1, matrix ud2)
 	return y;
 }
 
-matrix hf4T(matrix, matrix, matrix)
+double sigmoid(matrix theta, matrix x)
+{
+	return 1.0 / (1.0 + exp(-1.0 * m2d(trans(theta) * x)));
+}
+
+matrix hf4T(matrix x, matrix ud1, matrix ud2)
 {
 	matrix y(2, 2);
 
@@ -345,3 +350,42 @@ matrix hf4T(matrix, matrix, matrix)
 
 	return y;
 }
+
+matrix ff4R(matrix theta, matrix X, matrix Y)
+{
+	matrix y;
+
+	double sum = 0.0;
+	for (int i = 0; i < 100; ++i)
+	{
+		double y_i = Y[i](0);
+		matrix x_i = X[i];
+		sum += y_i * log(sigmoid(theta, x_i)) + (1.0 - y_i) * log(1.0 - sigmoid(theta, x_i));
+	}
+
+	y = (-1.0 / 100.0) * sum;
+
+	return y;
+}
+
+matrix gf4R(matrix theta, matrix X, matrix Y)
+{
+	matrix y(3, 1);
+
+	for (int j = 0; j < 3; ++j)
+	{
+		double sum = 0.0;
+		for (int i = 0; i < 100; ++i)
+		{
+			double y_i = Y[i](0);
+			matrix x_i = X[i];
+
+			sum += (sigmoid(theta, x_i) - y_i) * x_i(j);
+		}
+		y(j) = (1.0 / 100.0) * sum;
+	}
+
+	return y;
+}
+
+

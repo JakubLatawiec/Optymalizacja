@@ -11,6 +11,7 @@ Data ostatniej modyfikacji: 19.09.2023
 #include "environment.h"
 #include"opt_alg.h"
 #include "configuration.h"
+#include "file_reader.h"
 
 void lab0();
 void lab1();
@@ -449,44 +450,109 @@ void lab3()
 
 void lab4()
 {
-	matrix x0 = matrix(2, new double[2] {-10.0, -10.0});
-	double h0 = 0.05;
-	double epsilon = 1E-8;
+#ifdef SAVE_TO_FILE
+	create_environment("lab04");
+#endif
+
+	//Dane dokładnościowe
+	double epsilon = 1E-4;
 	int Nmax = 10000;
 
-	std::cout << "SD: Metoda stalokrokowa:\n";
-	solution sd = SD(ff4T, gf4T, x0, h0, epsilon, Nmax);
-	std::cout << sd << "\n";
 
-	solution::clear_calls();
+#ifdef CALC_TEST
+	//Generator liczb losowych
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> x0_dist(-10.0, 10.0);
 
-	std::cout << "\nSD: Metoda zmiennokrokowa:\n";
-	sd = SD(ff4T, gf4T, x0, 0.0, epsilon, Nmax);
-	std::cout << sd << "\n";
+	//Stringstream do zapisu danych
+	std::stringstream test_ss;
 
-	solution::clear_calls();
+	//Rozwiązanie dla wyników testowych
+	solution test_sol;
 
-	std::cout << "\nCG: Metoda stalokrokowa:\n";
-	solution cg = CG(ff4T, gf4T, x0, h0, epsilon, Nmax);
-	std::cout << cg << "\n";
+	//Punkty startowe
+	matrix test_x0{};
 
-	solution::clear_calls();
+	//Długości kroków
+	double h0_arr[] = { 0.05, 0.12, 0.0 };
 
-	std::cout << "\nCG: Metoda zmiennokrokowa:\n";
-	cg = CG(ff4T, gf4T, x0, 0.0, epsilon, Nmax);
-	std::cout << cg << "\n";
+	for (auto& h0 : h0_arr)
+	{
+		for (int i = 0; i < 100; ++i)
+		{
+			test_x0 = matrix(2, new double[2] {x0_dist(gen), x0_dist(gen)});
+			test_ss << test_x0(0) << ";" << test_x0(1) << ";";
 
-	solution::clear_calls();
+			test_sol = SD(ff4T, gf4T, test_x0, h0, epsilon, Nmax);
+			test_ss << test_sol.x(0) << ";" << test_sol.x(1) << ";" << m2d(test_sol.y) << ";" << test_sol.f_calls << ";" << test_sol.g_calls << ";";
 
-	std::cout << "\nNEWTON: Metoda stalokrokowa:\n";
-	solution newton = Newton(ff4T, gf4T, hf4T, x0, h0, epsilon, Nmax);
-	std::cout << newton << "\n";
+			solution::clear_calls();
 
-	solution::clear_calls();
+			test_sol = CG(ff4T, gf4T, test_x0, h0, epsilon, Nmax);
+			test_ss << test_sol.x(0) << ";" << test_sol.x(1) << ";" << m2d(test_sol.y) << ";" << test_sol.f_calls << ";" << test_sol.g_calls << ";";
 
-	std::cout << "\nNEWTON: Metoda zmiennokrokowa:\n";
-	newton = Newton(ff4T, gf4T, hf4T, x0, 0.0, epsilon, Nmax);
-	std::cout << newton << "\n";
+			solution::clear_calls();
+
+			test_sol = Newton(ff4T, gf4T, hf4T, test_x0, h0, epsilon, Nmax);
+			test_ss << test_sol.x(0) << ";" << test_sol.x(1) << ";" << m2d(test_sol.y) << ";" << test_sol.f_calls << ";" << test_sol.g_calls << ";" << test_sol.H_calls << "\n";
+			
+			solution::clear_calls();
+		}
+
+#ifdef SAVE_TO_FILE
+		save_to_file("test_h_" + std::to_string(h0) + ".csv", test_ss.str());
+#endif
+
+		//Czyszczenie zawartoci ss
+		test_ss.str(std::string());
+	}
+
+	//Liczenie danych do wykresów
+	SAVE_CHART_DATA = true;
+	test_x0 = matrix(2, new double[2] {-5.98, -2.31});
+	for (auto& h0 : h0_arr)
+	{
+		test_sol = SD(ff4T, gf4T, test_x0, h0, epsilon, Nmax);
+		solution::clear_calls();
+		test_sol = CG(ff4T, gf4T, test_x0, h0, epsilon, Nmax);
+		solution::clear_calls();
+		test_sol = Newton(ff4T, gf4T, hf4T, test_x0, h0, epsilon, Nmax);
+	}
+	SAVE_CHART_DATA = false;
+#endif
+
+#ifdef CALC_SIMULATION
+	//Pobieranie danych z pliku
+	matrix x_data = file_reader::fileToMatrix(3, 100, "../input_data/lab04/XData.txt");
+	matrix y_data = file_reader::fileToMatrix(1, 100, "../input_data/lab04/YData.txt");
+
+	//Początkowe theta
+	matrix theta_start = matrix(3, new double[3] {0.0, 0.0, 0.0});
+
+	//Długości kroków
+	double h0_arr_sim[] = { 0.01, 0.001, 0.0001 };
+
+	for (auto& h0 : h0_arr_sim)
+	{
+		//Wyliczanie optymalnych parametrów klasyfikatora
+		solution theta_opt = CG(ff4R, gf4R, theta_start, h0, epsilon, Nmax, x_data, y_data);
+		std::cout << theta_opt << "\n";
+
+		//Obliczanie procentu dostających się osób
+		double percentage = 0;
+		for (int i = 0; i < 100; ++i)
+		{
+			matrix curr_x = x_data[i];
+			matrix curr_y = y_data[i];
+			double calculated_value = sigmoid(theta_opt.x, curr_x);
+			if (round(calculated_value) == curr_y)
+				++percentage;
+		}
+		std::cout << "Percentage: " << percentage << "\n\n\n";
+		solution::clear_calls();
+	}
+#endif
 }
 
 void lab5()

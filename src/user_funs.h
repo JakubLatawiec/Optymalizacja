@@ -22,5 +22,7 @@ matrix df3(double, matrix, matrix = NAN, matrix = NAN);
 matrix ff4T(matrix, matrix = NAN, matrix = NAN);
 matrix gf4T(matrix, matrix = NAN, matrix = NAN);
 matrix hf4T(matrix, matrix = NAN, matrix = NAN);
-
+matrix ff4R(matrix, matrix = NAN, matrix = NAN);
+matrix gf4R(matrix, matrix = NAN, matrix = NAN);
+double sigmoid(matrix theta, matrix x);
 

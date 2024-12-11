@@ -684,6 +684,8 @@ solution SD(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix, mat
 {
 	try
 	{
+		std::stringstream ss{};
+
 		solution XB;
 		XB.x = x0;
 
@@ -694,6 +696,9 @@ solution SD(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix, mat
 
 		while (true)
 		{
+			if (SAVE_CHART_DATA)
+				ss << XB.x(0) << ";" << XB.x(1) << "\n";
+
 			//Wyliczanie kierunku spadku funkcji
 			XB.grad(gf, ud1, ud2);
 			d = -XB.g;
@@ -705,7 +710,6 @@ solution SD(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix, mat
 				h_fun_data.set_col(XB.x, 0);
 				h_fun_data.set_col(d, 1);
 				solution h_sol = golden(ff, 0, 1, epsilon, Nmax, ud1, h_fun_data);
-				solution::f_calls = 0;
 				matrix h = h_sol.x;
 				XT.x = XB.x + h * d;
 			}
@@ -717,7 +721,13 @@ solution SD(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix, mat
 			
 
 			if (solution::g_calls > Nmax)
-				throw std::string("Maximum amount of g_calls reached!");
+			{
+				if (SAVE_CHART_DATA)
+					save_to_file("SD_chart_h_" + std::to_string(h0) + ".csv", ss.str());
+				XT.fit_fun(ff, ud1, ud2);
+				return XT;
+			}
+				
 
 			if (norm(XT.x - XB.x) <= epsilon)
 				break;
@@ -725,6 +735,10 @@ solution SD(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix, mat
 			XB = XT;
 		}
 
+		if (SAVE_CHART_DATA)
+			save_to_file("SD_chart_h_" + std::to_string(h0) + ".csv", ss.str());
+
+		XT.fit_fun(ff, ud1, ud2);
 		return XT;
 	}
 	catch (string ex_info)
@@ -737,6 +751,8 @@ solution CG(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix, mat
 {
 	try
 	{
+		std::stringstream ss{};
+
 		solution XB;
 		XB.x = x0;
 
@@ -751,6 +767,7 @@ solution CG(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix, mat
 
 		while (true)
 		{
+			ss << XB.x(0) << ";" << XB.x(1) << "\n";
 			//Metoda zmiennokrokowa
 			if (h0 <= 0)
 			{
@@ -758,7 +775,6 @@ solution CG(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix, mat
 				h_fun_data.set_col(XB.x, 0);
 				h_fun_data.set_col(d, 1);
 				solution h_sol = golden(ff, 0, 1, epsilon, Nmax, ud1, h_fun_data);
-				solution::f_calls = 0;
 				matrix h = h_sol.x;
 				XT.x = XB.x + h * d;
 			}
@@ -769,7 +785,13 @@ solution CG(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix, mat
 			}
 
 			if (solution::g_calls > Nmax)
-				throw std::string("Maximum amount of g_calls reached!");
+			{
+				if (SAVE_CHART_DATA)
+					save_to_file("CG_chart_h_" + std::to_string(h0) + ".csv", ss.str());
+
+				XT.fit_fun(ff, ud1, ud2);
+				return XT;
+			}
 
 			if (norm(XT.x - XB.x) <= epsilon)
 				break;
@@ -784,6 +806,10 @@ solution CG(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix, mat
 			XB = XT;
 		}
 
+		if (SAVE_CHART_DATA)
+			save_to_file("CG_chart_h_" + std::to_string(h0) + ".csv", ss.str());
+
+		XT.fit_fun(ff, ud1, ud2);
 		return XT;
 	}
 	catch (string ex_info)
@@ -797,6 +823,8 @@ solution Newton(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix,
 {
 	try
 	{
+		std::stringstream ss{};
+
 		solution XB;
 		XB.x = x0;
 
@@ -806,6 +834,9 @@ solution Newton(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix,
 
 		while (true)
 		{
+			if (SAVE_CHART_DATA)
+				ss << XB.x(0) << ";" << XB.x(1) << "\n";
+
 			XB.grad(gf, ud1, ud2);
 			XB.hess(Hf, ud1, ud2);
 
@@ -818,7 +849,6 @@ solution Newton(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix,
 				h_fun_data.set_col(XB.x, 0);
 				h_fun_data.set_col(d, 1);
 				solution h_sol = golden(ff, 0, 1, epsilon, Nmax, ud1, h_fun_data);
-				solution::f_calls = 0;
 				matrix h = h_sol.x;
 				XT.x = XB.x + h * d;
 			}
@@ -828,9 +858,14 @@ solution Newton(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix,
 				XT.x = XB.x + h0 * d;
 			}
 
-
 			if (solution::g_calls > Nmax)
-				throw std::string("Maximum amount of g_calls reached!");
+			{
+				if (SAVE_CHART_DATA)
+					save_to_file("Newton_chart_h_" + std::to_string(h0) + ".csv", ss.str());
+
+				XT.fit_fun(ff, ud1, ud2);
+				return XT;
+			}
 
 			if (norm(XT.x - XB.x) <= epsilon)
 				break;
@@ -838,6 +873,10 @@ solution Newton(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix,
 			XB = XT;
 		}
 
+		if (SAVE_CHART_DATA)
+			save_to_file("Newton_chart_h_" + std::to_string(h0) + ".csv", ss.str());
+
+		XT.fit_fun(ff, ud1, ud2);
 		return XT;
 	}
 	catch (string ex_info)
