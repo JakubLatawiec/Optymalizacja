@@ -684,10 +684,62 @@ solution SD(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix, mat
 {
 	try
 	{
-		solution Xopt;
-		//Tu wpisz kod funkcji
+		std::stringstream ss{};
 
-		return Xopt;
+		solution XB;
+		XB.x = x0;
+
+		solution XT;
+		XT = XB;
+
+		matrix d;
+
+		while (true)
+		{
+			if (SAVE_CHART_DATA)
+				ss << XB.x(0) << ";" << XB.x(1) << "\n";
+
+			//Wyliczanie kierunku spadku funkcji
+			XB.grad(gf, ud1, ud2);
+			d = -XB.g;
+
+			//Metoda zmiennokrokowa
+			if (h0 <= 0)
+			{
+				matrix h_fun_data(2, 2);
+				h_fun_data.set_col(XB.x, 0);
+				h_fun_data.set_col(d, 1);
+				solution h_sol = golden(ff, 0, 1, epsilon, Nmax, ud1, h_fun_data);
+				matrix h = h_sol.x;
+				XT.x = XB.x + h * d;
+			}
+			//Metoda sta³okrokowa
+			else
+			{
+				XT.x = XB.x + h0 * d;
+			}
+			
+
+			if (solution::g_calls > Nmax)
+			{
+				if (SAVE_CHART_DATA)
+					save_to_file("SD_chart_h_" + std::to_string(h0) + ".csv", ss.str());
+				XT.fit_fun(ff, ud1, ud2);
+				return XT;
+			}
+				
+
+			if (norm(XT.x - XB.x) <= epsilon)
+				break;
+
+			XB = XT;
+		}
+
+		if (SAVE_CHART_DATA)
+			save_to_file("SD_chart_h_" + std::to_string(h0) + ".csv", ss.str());
+
+		XT.fit_fun(ff, ud1, ud2);
+		return XT;
 	}
 	catch (string ex_info)
 	{
@@ -699,10 +751,66 @@ solution CG(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix, mat
 {
 	try
 	{
-		solution Xopt;
-		//Tu wpisz kod funkcji
+		std::stringstream ss{};
 
-		return Xopt;
+		solution XB;
+		XB.x = x0;
+
+		solution XT;
+		matrix g_prev;
+		matrix g_curr;
+		matrix d;
+
+		XB.grad(gf, ud1, ud2);
+		g_prev = XB.g;
+		d = -g_prev;
+
+		while (true)
+		{
+			ss << XB.x(0) << ";" << XB.x(1) << "\n";
+			//Metoda zmiennokrokowa
+			if (h0 <= 0)
+			{
+				matrix h_fun_data(2, 2);
+				h_fun_data.set_col(XB.x, 0);
+				h_fun_data.set_col(d, 1);
+				solution h_sol = golden(ff, 0, 1, epsilon, Nmax, ud1, h_fun_data);
+				matrix h = h_sol.x;
+				XT.x = XB.x + h * d;
+			}
+			//Metoda sta³okrokowa
+			else
+			{
+				XT.x = XB.x + h0 * d;
+			}
+
+			if (solution::g_calls > Nmax)
+			{
+				if (SAVE_CHART_DATA)
+					save_to_file("CG_chart_h_" + std::to_string(h0) + ".csv", ss.str());
+
+				XT.fit_fun(ff, ud1, ud2);
+				return XT;
+			}
+
+			if (norm(XT.x - XB.x) <= epsilon)
+				break;
+
+			XT.grad(gf, ud1, ud2);
+			g_curr = XT.g;
+
+			double beta = pow(norm(g_curr), 2) / pow(norm(g_prev), 2);
+			d = -g_curr + beta * d;
+
+			g_prev = g_curr;
+			XB = XT;
+		}
+
+		if (SAVE_CHART_DATA)
+			save_to_file("CG_chart_h_" + std::to_string(h0) + ".csv", ss.str());
+
+		XT.fit_fun(ff, ud1, ud2);
+		return XT;
 	}
 	catch (string ex_info)
 	{
@@ -715,10 +823,61 @@ solution Newton(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix,
 {
 	try
 	{
-		solution Xopt;
-		//Tu wpisz kod funkcji
+		std::stringstream ss{};
 
-		return Xopt;
+		solution XB;
+		XB.x = x0;
+
+		solution XT;
+
+		matrix d;
+
+		while (true)
+		{
+			if (SAVE_CHART_DATA)
+				ss << XB.x(0) << ";" << XB.x(1) << "\n";
+
+			XB.grad(gf, ud1, ud2);
+			XB.hess(Hf, ud1, ud2);
+
+			d = -inv(XB.H) * XB.g;
+
+			//Metoda zmiennokrokowa
+			if (h0 <= 0)
+			{
+				matrix h_fun_data(2, 2);
+				h_fun_data.set_col(XB.x, 0);
+				h_fun_data.set_col(d, 1);
+				solution h_sol = golden(ff, 0, 1, epsilon, Nmax, ud1, h_fun_data);
+				matrix h = h_sol.x;
+				XT.x = XB.x + h * d;
+			}
+			//Metoda sta³okrokowa
+			else
+			{
+				XT.x = XB.x + h0 * d;
+			}
+
+			if (solution::g_calls > Nmax)
+			{
+				if (SAVE_CHART_DATA)
+					save_to_file("Newton_chart_h_" + std::to_string(h0) + ".csv", ss.str());
+
+				XT.fit_fun(ff, ud1, ud2);
+				return XT;
+			}
+
+			if (norm(XT.x - XB.x) <= epsilon)
+				break;
+
+			XB = XT;
+		}
+
+		if (SAVE_CHART_DATA)
+			save_to_file("Newton_chart_h_" + std::to_string(h0) + ".csv", ss.str());
+
+		XT.fit_fun(ff, ud1, ud2);
+		return XT;
 	}
 	catch (string ex_info)
 	{
@@ -731,8 +890,41 @@ solution golden(matrix(*ff)(matrix, matrix, matrix), double a, double b, double 
 	try
 	{
 		solution Xopt;
-		//Tu wpisz kod funkcji
+		double alpha = (pow(5, 0.5) - 1) / 2;
+		double a0 = a;
+		double b0 = b;
+		double c0 = b0 - alpha * (b0 - a0);
+		double d0 = a0 + alpha * (b0 - a0);
 
+		do
+		{
+			solution c0_sol;
+			c0_sol.x = c0;
+			c0_sol.fit_fun(ff, ud1, ud2);
+
+			solution d0_sol;
+			d0_sol.x = d0;
+			d0_sol.fit_fun(ff, ud1, ud2);
+
+			if (c0_sol.y < d0_sol.y)
+			{
+				b0 = d0;
+				d0 = c0;
+				c0 = b0 - alpha * (b0 - a0);
+			}
+			else
+			{
+				c0 = d0;
+				a0 = c0;
+				d0 = a0 + alpha * (b0 - a0);
+			}
+
+			if (solution::f_calls > Nmax)
+				throw std::string("Maximum amount of f_calls reached!: ");
+
+		} while (b0 - a0 > epsilon);
+
+		Xopt.x = (a0 + b0) / 2;
 		return Xopt;
 	}
 	catch (string ex_info)
