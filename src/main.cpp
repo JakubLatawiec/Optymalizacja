@@ -29,7 +29,9 @@ int main()
 		//lab1();
 		//lab2();
 		//lab3();
-		lab4();
+		//lab4();
+		//lab5();
+		lab6();
 	}
 	catch (const string& EX_INFO)
 	{
@@ -557,10 +559,147 @@ void lab4()
 
 void lab5()
 {
+#ifdef SAVE_TO_FILE
+	create_environment("lab05");
+#endif
 
+	//Dane dokładnościowe
+	double epsilon = 1E-4;
+	int Nmax = 10000;
+
+	//Generator liczb losowych
+	std::random_device rd;
+	std::mt19937 gen(rd());
+
+#ifdef CALC_TEST
+	std::uniform_real_distribution<> x0_dist(-10.0, 10.0);
+
+	//Stringstream do zapisu danych
+	std::stringstream test_ss;
+
+	//Rozwiązanie dla wyników testowych
+	solution test_sol;
+
+	//Punkty startowe
+	matrix test_x0{};
+
+	//Długości kroków
+	double a_arr[] = { 1.0, 10.0, 100.0 };
+
+	for (double w = 0.0; w <= 1.0; w += 0.01)
+	{
+		test_x0 = matrix(2, new double[2] {x0_dist(gen), x0_dist(gen)});
+		test_ss << test_x0(0) << ";" << test_x0(1) << ";";
+
+		for (auto& a : a_arr)
+		{
+			test_sol = Powell(ff5T, test_x0, epsilon, Nmax, matrix(2, new double[2] {w, a}));
+			test_ss << test_sol.x(0) << ";" << test_sol.x(1) << ";" << test_sol.y(0) << ";" << test_sol.y(1) << ";" << solution::f_calls << ";";
+			solution::clear_calls();
+		}
+		test_ss << "\n";
+	}
+
+#ifdef SAVE_TO_FILE
+	save_to_file("test.csv", test_ss.str());
+#endif
+#endif
+
+#ifdef CALC_SIMULATION
+	std::uniform_real_distribution<> l_dist(0.2, 1.0);
+	std::uniform_real_distribution<> d_dist(0.01, 0.05);
+
+	//Stringstream do zapisu danych
+	std::stringstream simulation_ss;
+
+	//Rozwiązanie dla wyników testowych
+	solution simualtion_sol;
+
+	//Punkty startowe
+	matrix x0{};
+
+	for (double w = 0.0; w <= 1.0; w += 0.01)
+	{
+		x0 = matrix(2, new double[2] {l_dist(gen), d_dist(gen)});
+		simulation_ss << x0(0) * 1000 << ";" << x0(1) * 1000 << ";";
+
+		simualtion_sol = Powell(ff5R, x0, epsilon, Nmax, matrix(w));
+		simulation_ss << simualtion_sol.x(0) * 1000 << ";" << simualtion_sol.x(1) * 1000 << ";" << simualtion_sol.y(0) << ";" << simualtion_sol.y(1) * 1000 << ";" << solution::f_calls << "\n";
+		solution::clear_calls();
+	}
+
+#ifdef SAVE_TO_FILE
+	save_to_file("simulation.csv", simulation_ss.str());
+#endif
+
+#endif
 }
 
 void lab6()
 {
+#ifdef SAVE_TO_FILE
+	create_environment("lab06");
+#endif
 
+	//Dane dokładnościowe
+	double epsilon = 1E-4;
+	int Nmax = 10000;
+
+#ifdef CALC_TEST
+	//Stringstream do zapisu danych
+	std::stringstream test_ss;
+
+	//Rozwiązanie dla wyników testowych
+	solution test_sol;
+
+	//Punkty startowe
+	matrix test_x0{};
+
+	//Długości kroków
+	double sigma_arr[] = { 0.01, 0.1, 1.0, 10.0, 100.0 };
+
+	//Zakresy
+	matrix lb_test = matrix(2, new double[2] {-5.0, -5.0});
+	matrix ub_test = matrix(2, new double[2] {5.0, 5.0});
+	
+	//Liczba populacji
+	int mi_test = 20;
+	int lambda_test = 40;
+
+	for (auto sigma : sigma_arr)
+	{
+		for (int i = 0; i < 100; ++i)
+		{
+			test_sol = EA(ff6T, 2, lb_test, ub_test, mi_test, lambda_test, sigma, epsilon, Nmax);
+			test_ss << test_sol.x(0) << ";" << test_sol.x(1) << ";" << test_sol.y(0) << ";" << test_sol.f_calls << ";" << (solution::f_calls > Nmax ? "NIE" : "TAK") << "\n";
+			solution::clear_calls();
+		}
+	}
+
+#ifdef SAVE_TO_FILE
+	save_to_file("test.csv", test_ss.str());
+#endif
+#endif
+
+#ifdef CALC_SIMULATION
+	//Parametry zadania
+	matrix lb = matrix(2, new double[2] {0.1, 0.1});
+	matrix ub = matrix(2, new double[2] {3.0, 3.0});
+	matrix sigma0 = matrix(2, new double[2] {0.1, 0.1});
+	int mi = 50;
+	int lambda = 100;
+
+	//Pobieranie danych z pliku
+	matrix x1_x2_data = file_reader::fileToMatrix(1001, 2, "../input_data/lab06/polozenia.txt");
+
+	solution opt = EA(ff6R, 2, lb, ub, mi, lambda, sigma0, epsilon, Nmax, 1001, x1_x2_data);
+	std::cout << opt << "\n";
+
+	matrix y;
+	matrix Y0 = matrix(4, new double[4] {0.0, 0.0, 0.0, 0.0});
+	matrix* Y = solve_ode(df6, 0.0, 0.1, 100.0, Y0, NAN, opt.x[0]);
+#ifdef SAVE_TO_FILE
+	save_to_file("simulation.csv", Y[1]);
+#endif
+#endif
 }

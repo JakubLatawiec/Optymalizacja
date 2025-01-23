@@ -389,3 +389,115 @@ matrix gf4R(matrix theta, matrix X, matrix Y)
 }
 
 
+matrix ff5T(matrix x, matrix ud1, matrix ud2)
+{
+	matrix y;
+
+	double w = ud1(0);
+	double a = ud1(1);
+
+	if (isnan(ud2(0, 0)))
+	{
+		y = matrix(2, 1);
+		y(0) = a * (pow(x(0) - 2, 2) + pow(x(1) - 2, 2));
+		y(1) = (1.0 / a) * (pow(x(0) + 2, 2) + pow(x(1) + 2, 2));
+	}
+	else
+	{
+		matrix yt;
+		yt = ff5T(ud2[0] + x * ud2[1], ud1);
+		y = w * yt(0) + (1 - w) * yt(1);
+	}
+	return y;
+}
+
+matrix ff5R(matrix x, matrix ud1, matrix ud2)
+{
+	matrix y;
+
+	const double rho = 7800;
+	const double P = 1000;
+	const double E = 207e9;
+
+	const double w = ud1(0);
+
+	const double c = 1e10;
+
+	if (isnan(ud2(0, 0)))
+	{
+		const double l = x(0);
+		const double d = x(1);
+
+		y = matrix(3, 1);
+		y(0) = rho * l * M_PI * (std::pow(d, 2) / 4);
+		y(1) = (64.0 * P * std::pow(l, 3)) / (3.0 * E * M_PI * std::pow(d, 4));
+		y(2) = (32.0 * P * l) / (M_PI * std::pow(d, 3));
+	}
+	else
+	{
+		matrix xt = ud2[0] + x * ud2[1];
+		matrix yt = ff5R(xt, ud1);
+
+		y = w * (yt(0) - 0.12) / (15.3 - 0.12) + (1.0 - w) * (yt(1) - 4.2e-5) / (3.28 - 4.2e-5);
+
+		if (xt(0) < 0.2)
+			y = y + c * pow(0.2 - xt(0), 2);
+		if (xt(0) > 1.0)
+			y = y + c * pow(xt(0) - 1.0, 2);
+
+		if (xt(1) < 0.01)
+			y = y + c * pow(0.01 - xt(1), 2);
+		if (xt(1) > 0.05)
+			y = y + c * pow(xt(1) - 0.05, 2);
+
+		if (yt(1) > 0.005)
+			y = y + c * pow(yt(1) - 0.005, 2);
+		if (yt(2) > 300e6)
+			y = y + c * pow(yt(2) - 300e6, 2);
+
+	}
+	return y;
+}
+
+matrix ff6T(matrix x, matrix ud1, matrix ud2)
+{
+	return pow(x(0), 2) + pow(x(1), 2) - cos(2.5 * M_PI * x(0)) - cos(2.5 * M_PI * x(1)) + 2;
+}
+
+matrix df6(double t, matrix Y, matrix ud1, matrix ud2)
+{
+	matrix dY(4, 1);
+
+	const double m_1 = 5.0;
+	const double m_2 = 5.0;
+	const double k_1 = 1.0;
+	const double k_2 = 1.0;
+	const double F = 1.0;
+
+	double b_1 = ud2(0);
+	double b_2 = ud2(1);
+
+	dY(0) = Y(1);
+	dY(1) = (-b_1 * Y(1) - b_2 * (Y(1) - Y(3)) - k_1 * Y(0) - k_2 * (Y(0) - Y(2))) / m_1;
+	dY(2) = Y(3);
+	dY(3) = (F + b_2 * (Y(1) - Y(3)) + k_2 * (Y(0) - Y(2))) / m_2;
+
+	return dY;
+}
+
+matrix ff6R(matrix x, matrix ud1, matrix ud2)
+{
+	matrix y = 0;
+
+	matrix Y0 = matrix(4, new double[4] {0.0, 0.0, 0.0, 0.0});
+	matrix* Y = solve_ode(df6, 0.0, 0.1, 100.0, Y0, ud1, x[0]);
+
+	for (int i = 0; i < 1001; ++i)
+	{
+		y = y + abs(ud2(i, 0) - Y[1](i, 0)) + abs(ud2(i, 1) - Y[1](i, 2));
+	}
+	y(0) = y(0) / (2 * ud1(0));
+
+	return y;
+}
+
