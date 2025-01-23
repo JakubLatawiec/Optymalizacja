@@ -285,7 +285,7 @@ solution HJ(matrix(*ff)(matrix, matrix, matrix), matrix x0, double s, double alp
 			//Znalezienie lepszego punktu
 			if (XT.y < XB.y)
 			{
-				//Szukanie minimum przy sta³ym kroku do momentu roœniêcia funkcji
+				//Szukanie minimum przy staÂ³ym kroku do momentu roÅ“niÃªcia funkcji
 				do
 				{
 					//Zapis danych do wykresu
@@ -304,12 +304,12 @@ solution HJ(matrix(*ff)(matrix, matrix, matrix), matrix x0, double s, double alp
 					}
 				} while (XT.y < XB.y);
 
-				//Zast¹pienie wyiczonego punktu poprzednim (XT to by³ punkt w którym funkcja ju¿ ros³a)
+				//ZastÂ¹pienie wyiczonego punktu poprzednim (XT to byÂ³ punkt w ktÃ³rym funkcja juÂ¿ rosÂ³a)
 				XT = XB;
 			}
 			//Brak lepszego punktu
 			else
-				//Zmniejszenie kroku poszukiwañ
+				//Zmniejszenie kroku poszukiwaÃ±
 				s = s * alpha;
 
 			if (solution::f_calls > Nmax)
@@ -342,7 +342,7 @@ solution HJ_trial(matrix(*ff)(matrix, matrix, matrix), solution XB, double s, ma
 		for (int i = 0; i < n; ++i)
 			d(i, i) = 1.0;
 
-		//Poszukiwanie lepszego minimum po ka¿dym kierunku funkcji
+		//Poszukiwanie lepszego minimum po kaÂ¿dym kierunku funkcji
 		for (int j = 0; j < n; ++j)
 		{
 			//Wyliczanie nowego punktu
@@ -379,7 +379,7 @@ solution Rosen(matrix(*ff)(matrix, matrix, matrix), matrix x0, matrix s0, double
 
 		solution Xopt;
 
-		//Funkcja pomocnicza szukaj¹ca maksymalnej wartoœci bezwzglêdnej w wektorze pionowym
+		//Funkcja pomocnicza szukajÂ¹ca maksymalnej wartoÅ“ci bezwzglÃªdnej w wektorze pionowym
 		auto max = [&](matrix m) -> double
 		{
 			int len = get_len(m);
@@ -392,7 +392,7 @@ solution Rosen(matrix(*ff)(matrix, matrix, matrix), matrix x0, matrix s0, double
 		};
 
 		int i = 0;
-		//Iloœæ zmiennych funkcji
+		//IloÅ“Ã¦ zmiennych funkcji
 		int n = get_len(x0);
 
 		//Baza szukania kierunku
@@ -417,7 +417,7 @@ solution Rosen(matrix(*ff)(matrix, matrix, matrix), matrix x0, matrix s0, double
 
 		while (max(s) >= epsilon)
 		{
-			//Poszukiwanie lepszego minimum po ka¿dym kierunku funkcji
+			//Poszukiwanie lepszego minimum po kaÂ¿dym kierunku funkcji
 			for (int j = 0; j < n; ++j)
 			{
 				//Wyliczanie nowego punktu
@@ -448,7 +448,7 @@ solution Rosen(matrix(*ff)(matrix, matrix, matrix), matrix x0, matrix s0, double
 			//Znaleziony punkt przypisywany do wynikowego
 			Xopt = XB;
 
-			//Sprawdzanie czy wszystkie mo¿liwe kierunki zosta³y sprawdzone
+			//Sprawdzanie czy wszystkie moÂ¿liwe kierunki zostaÂ³y sprawdzone
 			bool changeDirectionBase = true;
 			for (int j = 0; j < n; ++j)
 			{
@@ -462,7 +462,7 @@ solution Rosen(matrix(*ff)(matrix, matrix, matrix), matrix x0, matrix s0, double
 			//Zmiana bazy kierunku
 			if (changeDirectionBase)
 			{
-				//Macierz trójk¹tna dolna lambdy
+				//Macierz trÃ³jkÂ¹tna dolna lambdy
 				matrix lambdaMatrix(n, n);
 				int l = 0;
 				for (int k = 0; k < n; ++k)
@@ -477,7 +477,7 @@ solution Rosen(matrix(*ff)(matrix, matrix, matrix), matrix x0, matrix s0, double
 				//Wyliczanie macierzy Q
 				matrix Q = d * lambdaMatrix;
 
-				//Wyznaczanie sk³adowych wektora V
+				//Wyznaczanie skÂ³adowych wektora V
 				matrix V = matrix(n, 1);
 				V = Q[0];
 				d[0] = V / norm(V);
@@ -492,11 +492,11 @@ solution Rosen(matrix(*ff)(matrix, matrix, matrix), matrix x0, matrix s0, double
 					d[j] = V / norm(V);
 				}
 
-				//Zerowanie wektorów pomocniczych
+				//Zerowanie wektorÃ³w pomocniczych
 				lambda = matrix(n, new double[n] {0.0});
 				p = matrix(n, new double[n] {0.0});
 
-				//Zmiana d³ugoœci kroku na pocz¹tkowy
+				//Zmiana dÂ³ugoÅ“ci kroku na poczÂ¹tkowy
 				s = s0;
 			}
 
@@ -529,11 +529,11 @@ solution pen(matrix(*ff)(matrix, matrix, matrix), matrix x0, double c, double dc
 		solution XT;
 		XT = XB;
 
-		double s = 0.5; //D³ugoœæ boku trójk¹ta
-		double alpha = 1.0; //Wspó³czynnik odbicia
-		double beta = 0.5; //Wspó³czynnik zwê¿enia
-		double gamma = 2.0; //Wspó³czynnik ekspansji
-		double delta = 0.5; //Wspó³czynnik redukcji
+		double s = 0.5; //DÂ³ugoÅ“Ã¦ boku trÃ³jkÂ¹ta
+		double alpha = 1.0; //WspÃ³Â³czynnik odbicia
+		double beta = 0.5; //WspÃ³Â³czynnik zwÃªÂ¿enia
+		double gamma = 2.0; //WspÃ³Â³czynnik ekspansji
+		double delta = 0.5; //WspÃ³Â³czynnik redukcji
 
 		do
 		{
@@ -584,7 +584,7 @@ solution sym_NM(matrix(*ff)(matrix, matrix, matrix), matrix x0, double s, double
 		for (int i = 0; i < n; ++i)
 			d(i, i) = 1.0;
 
-		//Tworzenie simplexu i uzupe³nianie go danymi
+		//Tworzenie simplexu i uzupeÂ³nianie go danymi
 		std::vector<solution> simplex;
 		simplex.resize(n + 1);
 		simplex[0].x = x0;
@@ -595,9 +595,9 @@ solution sym_NM(matrix(*ff)(matrix, matrix, matrix), matrix x0, double s, double
 			simplex[i].fit_fun(ff, ud1, ud2);
 		}
 
-		//Indeks najmniejszej wartoœci wierzcho³ka simplexu
+		//Indeks najmniejszej wartoÅ“ci wierzchoÂ³ka simplexu
 		int i_min{};
-		//Indeks najwiêkszej wartoœci wierzcho³ka simplexu
+		//Indeks najwiÃªkszej wartoÅ“ci wierzchoÂ³ka simplexu
 		int i_max{};
 
 		while (max(simplex, i_min) >= epsilon)
@@ -613,7 +613,7 @@ solution sym_NM(matrix(*ff)(matrix, matrix, matrix), matrix x0, double s, double
 					i_max = i;
 			}
 
-			//Wyznaczenie œrodka ciê¿koœci
+			//Wyznaczenie Å“rodka ciÃªÂ¿koÅ“ci
 			matrix simplex_CoG{};
 			for (int i = 0; i < simplex.size(); ++i)
 			{
@@ -623,14 +623,14 @@ solution sym_NM(matrix(*ff)(matrix, matrix, matrix), matrix x0, double s, double
 			}
 			simplex_CoG = simplex_CoG / simplex.size();
 
-			//Obliczanie wartoœci funkcji odbitego simplexu
+			//Obliczanie wartoÅ“ci funkcji odbitego simplexu
 			solution simplex_reflected{};
 			simplex_reflected.x = simplex_CoG + alpha * (simplex_CoG - simplex[i_max].x);
 			simplex_reflected.fit_fun(ff, ud1, ud2);
 
 			if (simplex_reflected.y < simplex[i_min].y)
 			{
-				//Obliczanie wartoœci funkcji powiêkszonego simplexu
+				//Obliczanie wartoÅ“ci funkcji powiÃªkszonego simplexu
 				solution simplex_expansion{};
 				simplex_expansion.x = simplex_CoG + gamma * (simplex_reflected.x - simplex_CoG);
 				simplex_expansion.fit_fun(ff, ud1, ud2);
@@ -645,7 +645,7 @@ solution sym_NM(matrix(*ff)(matrix, matrix, matrix), matrix x0, double s, double
 					simplex[i_max] = simplex_reflected;
 				else
 				{
-					//Obliczanie wartoœci funkcji pomniejszonego simplexu
+					//Obliczanie wartoÅ“ci funkcji pomniejszonego simplexu
 					solution simplex_narrowed{};
 					simplex_narrowed.x = simplex_CoG + beta * (simplex[i_max].x - simplex_CoG);
 					simplex_narrowed.fit_fun(ff, ud1, ud2);
@@ -713,7 +713,7 @@ solution SD(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix, mat
 				matrix h = h_sol.x;
 				XT.x = XB.x + h * d;
 			}
-			//Metoda sta³okrokowa
+			//Metoda staÂ³okrokowa
 			else
 			{
 				XT.x = XB.x + h0 * d;
@@ -778,7 +778,7 @@ solution CG(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix, mat
 				matrix h = h_sol.x;
 				XT.x = XB.x + h * d;
 			}
-			//Metoda sta³okrokowa
+			//Metoda staÂ³okrokowa
 			else
 			{
 				XT.x = XB.x + h0 * d;
@@ -852,7 +852,7 @@ solution Newton(matrix(*ff)(matrix, matrix, matrix), matrix(*gf)(matrix, matrix,
 				matrix h = h_sol.x;
 				XT.x = XB.x + h * d;
 			}
-			//Metoda sta³okrokowa
+			//Metoda staÂ³okrokowa
 			else
 			{
 				XT.x = XB.x + h0 * d;
@@ -1080,11 +1080,11 @@ solution EA(matrix(*ff)(matrix, matrix, matrix), int N, matrix lb, matrix ub, in
 		matrix inv_fitness(mi, 1), temp_individual(N, 2); 
 
 		double r, cumulative_sum, total_inv_fitness;
-		double tau = 1.0 / sqrt(2 * N), tau_prime = 1.0 / sqrt(2 * sqrt(N)); // Wspó³czynniki mutacji
+		double tau = 1.0 / sqrt(2 * N), tau_prime = 1.0 / sqrt(2 * sqrt(N)); // WspÃ³Â³czynniki mutacji
 
 		int worst_idx; // Indeks najgorszego osobnika
 
-		// Inicjalizacja populacji pocz¹tkowej
+		// Inicjalizacja populacji poczÂ¹tkowej
 		for (int i = 0; i < mi; ++i)
 		{
 			population[i].x = matrix(N, 2);
@@ -1104,7 +1104,7 @@ solution EA(matrix(*ff)(matrix, matrix, matrix), int N, matrix lb, matrix ub, in
 			}
 		}
 
-		// G³ówna pêtla ewolucji
+		// GÂ³Ã³wna pÃªtla ewolucji
 		while (true)
 		{
 			total_inv_fitness = 0;
@@ -1115,7 +1115,7 @@ solution EA(matrix(*ff)(matrix, matrix, matrix), int N, matrix lb, matrix ub, in
 				total_inv_fitness += inv_fitness(i);
 			}
 
-			// Selekcja rodziców
+			// Selekcja rodzicÃ³w
 			for (int i = 0; i < lambda; ++i)
 			{
 				r = total_inv_fitness * m2d(rand_mat());
@@ -1131,7 +1131,7 @@ solution EA(matrix(*ff)(matrix, matrix, matrix), int N, matrix lb, matrix ub, in
 				}
 			}
 
-			// Mutacja potomków
+			// Mutacja potomkÃ³w
 			for (int i = 0; i < lambda; ++i)
 			{
 				r = m2d(randn_mat());
@@ -1142,7 +1142,7 @@ solution EA(matrix(*ff)(matrix, matrix, matrix), int N, matrix lb, matrix ub, in
 				}
 			}
 
-			// Krzy¿owanie
+			// KrzyÂ¿owanie
 			for (int i = 0; i < lambda; i += 2)
 			{
 				r = m2d(rand_mat());
@@ -1151,7 +1151,7 @@ solution EA(matrix(*ff)(matrix, matrix, matrix), int N, matrix lb, matrix ub, in
 				population[mi + i + 1].x = r * population[mi + i + 1].x + (1 - r) * temp_individual;
 			}
 
-			// Ocena funkcji celu dla potomków
+			// Ocena funkcji celu dla potomkÃ³w
 			for (int i = 0; i < lambda; ++i)
 			{
 				population[mi + i].fit_fun(ff, ud1, ud2);
@@ -1162,7 +1162,7 @@ solution EA(matrix(*ff)(matrix, matrix, matrix), int N, matrix lb, matrix ub, in
 				}
 			}
 
-			// Selekcja mi najlepszych osobników
+			// Selekcja mi najlepszych osobnikÃ³w
 			for (int i = 0; i < mi; ++i)
 			{
 				worst_idx = 0;

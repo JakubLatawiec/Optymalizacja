@@ -320,7 +320,6 @@ matrix ff4T(matrix x, matrix ud1, matrix ud2)
 		y = pow((x(0) + 2 * x(1) - 7), 2) + pow((2 * x(0) + x(1) - 5), 2);
 	else
 		y = ff4T(ud2[0] + x * ud2[1]);
-		
 
 	return y;
 }
@@ -339,8 +338,6 @@ double sigmoid(matrix theta, matrix x)
 {
 	return 1.0 / (1.0 + exp(-1.0 * m2d(trans(theta) * x)));
 }
-
-
 
 matrix hf4T(matrix x, matrix ud1, matrix ud2)
 {
