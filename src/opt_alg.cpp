@@ -914,8 +914,8 @@ solution golden(matrix(*ff)(matrix, matrix, matrix), double a, double b, double 
 			}
 			else
 			{
-				c0 = d0;
 				a0 = c0;
+				c0 = d0;
 				d0 = a0 + alpha * (b0 - a0);
 			}
 
@@ -933,13 +933,135 @@ solution golden(matrix(*ff)(matrix, matrix, matrix), double a, double b, double 
 	}
 }
 
+static double* expansion_Powell(matrix(*ff)(matrix, matrix, matrix), double x0, double d, double alpha, int Nmax, matrix ud1, matrix ud2)
+{
+	try
+	{
+		double* p = new double[2] { 0, 0 };
+		double x1 = x0 + d;
+		int fcalls = 1;
+		matrix x0Mat(x0);
+		matrix x1Mat(x1);
+
+		if (ff(x1Mat, ud1, ud2) == ff(x0Mat, ud1, ud2))
+		{
+			p[0] = m2d(x0Mat);
+			p[1] = m2d(x1Mat);
+			return p;
+		}
+
+		x1Mat = x1;
+		if (ff(x1Mat, ud1, ud2) > ff(x0Mat, ud1, ud2))
+		{
+			d = -d;
+			x1 = x0 + d;
+			fcalls++;
+			x1Mat = x1;
+			if (ff(x1Mat, ud1, ud2) >= ff(x0Mat, ud1, ud2))
+			{
+				p[0] = m2d(x1Mat);
+				p[1] = m2d(x0Mat) - d;
+				return p;
+			}
+		}
+
+		int i = 1;
+		double xi_next = 0;
+		matrix xtempMat(0);
+
+		while (fcalls <= Nmax)
+		{
+			xi_next = x0 + alpha * i * d;
+			fcalls++;
+			x1Mat = xi_next;
+			xtempMat = (x0 + alpha * (i - 1) * d);
+			if (ff(x1Mat, ud1, ud2) >= ff(xtempMat, ud1, ud2))
+				break;
+
+			i++;
+		}
+
+		if (fcalls > Nmax)
+		{
+			throw string("Przekroczono liczbe wywolan\n");
+		}
+		else
+		{
+			if (d > 0)
+			{
+				p[0] = m2d(x0Mat) + alpha * (i - 2) * d;
+				p[1] = m2d(x1Mat);
+				return p;
+			}
+			else
+			{
+				p[0] = m2d(x1Mat);
+				p[1] = m2d(x0Mat) + alpha * (i - 2) * d;
+				return p;
+			}
+		}
+	}
+	catch (string ex_info)
+	{
+		throw("double* expansion(...):\n" + ex_info);
+	}
+}
+
 solution Powell(matrix(*ff)(matrix, matrix, matrix), matrix x0, double epsilon, int Nmax, matrix ud1, matrix ud2)
 {
 	try
 	{
 		solution Xopt;
-		//Tu wpisz kod funkcji
 
+		int n = get_len(x0);
+		matrix d = ident_mat(n);
+		matrix p;
+
+		matrix h_sol_data(n, 2);
+		solution h;
+
+		matrix XB;
+		XB = x0;
+
+		double* range;
+
+		while (true)
+		{
+			p = XB;
+
+			for (int j = 0; j < n; ++j)
+			{
+				h_sol_data.set_col(p, 0);
+				h_sol_data.set_col(d[j], 1);
+				range = expansion(ff, 0.0, 1.0, 1.2, Nmax, ud1, h_sol_data);
+				h = golden(ff, range[0], range[1], epsilon, Nmax, ud1, h_sol_data);
+				p = p + h.x * d[j];
+			}
+
+			if (norm(p - XB) < epsilon)
+			{
+				Xopt.x = p;
+				Xopt.fit_fun(ff, ud1, ud2);
+
+				return Xopt;
+			}
+
+			if (solution::f_calls > Nmax)
+				throw std::string("Maximum amount of f_calls reached!");
+
+			for (int j = 0; j < n - 1; ++j)
+				d.set_col(d[j + 1], j);
+			d.set_col(p - XB, n - 1);
+
+			h_sol_data.set_col(p, 0);
+			h_sol_data.set_col(d[n - 1], 1);
+			range = expansion(ff, 0.0, 1.0, 1.2, Nmax, ud1, h_sol_data);
+			h = golden(ff, range[0], range[1], epsilon, Nmax, ud1, h_sol_data);
+
+			XB = p + h.x * d[n - 1];
+		}
+
+		free(range);
 		return Xopt;
 	}
 	catch (string ex_info)
@@ -952,10 +1074,117 @@ solution EA(matrix(*ff)(matrix, matrix, matrix), int N, matrix lb, matrix ub, in
 {
 	try
 	{
-		solution Xopt;
-		//Tu wpisz kod funkcji
+		solution* population = new solution[mi + lambda]; // Populacja (rodzice + potomkowie)
+		solution* best_mu = new solution[mi]; // Najlepsi osobnicy
 
-		return Xopt;
+		matrix inv_fitness(mi, 1), temp_individual(N, 2); 
+
+		double r, cumulative_sum, total_inv_fitness;
+		double tau = 1.0 / sqrt(2 * N), tau_prime = 1.0 / sqrt(2 * sqrt(N)); // Wspó³czynniki mutacji
+
+		int worst_idx; // Indeks najgorszego osobnika
+
+		// Inicjalizacja populacji pocz¹tkowej
+		for (int i = 0; i < mi; ++i)
+		{
+			population[i].x = matrix(N, 2);
+
+			for (int j = 0; j < N; ++j)
+			{
+				population[i].x(j, 0) = (ub(j) - lb(j)) * m2d(rand_mat()) + lb(j);
+				population[i].x(j, 1) = sigma0(0);
+			}
+
+			population[i].fit_fun(ff, ud1, ud2);
+
+			if (population[i].y < epsilon)
+			{
+				population[i].flag = 1;
+				return population[i];
+			}
+		}
+
+		// G³ówna pêtla ewolucji
+		while (true)
+		{
+			total_inv_fitness = 0;
+
+			for (int i = 0; i < mi; ++i)
+			{
+				inv_fitness(i) = 1 / population[i].y(0);
+				total_inv_fitness += inv_fitness(i);
+			}
+
+			// Selekcja rodziców
+			for (int i = 0; i < lambda; ++i)
+			{
+				r = total_inv_fitness * m2d(rand_mat());
+				cumulative_sum = 0;
+				for (int j = 0; j < mi; ++j)
+				{
+					cumulative_sum += inv_fitness(j);
+					if (r <= cumulative_sum)
+					{
+						population[mi + i] = population[j];
+						break;
+					}
+				}
+			}
+
+			// Mutacja potomków
+			for (int i = 0; i < lambda; ++i)
+			{
+				r = m2d(randn_mat());
+				for (int j = 0; j < N; ++j)
+				{
+					population[mi + i].x(j, 1) *= exp(tau_prime * r + tau * m2d(randn_mat()));
+					population[mi + i].x(j, 0) += population[mi + i].x(j, 1) * m2d(randn_mat());
+				}
+			}
+
+			// Krzy¿owanie
+			for (int i = 0; i < lambda; i += 2)
+			{
+				r = m2d(rand_mat());
+				temp_individual = population[mi + i].x;
+				population[mi + i].x = r * population[mi + i].x + (1 - r) * population[mi + i + 1].x;
+				population[mi + i + 1].x = r * population[mi + i + 1].x + (1 - r) * temp_individual;
+			}
+
+			// Ocena funkcji celu dla potomków
+			for (int i = 0; i < lambda; ++i)
+			{
+				population[mi + i].fit_fun(ff, ud1, ud2);
+				if (population[mi + i].y < epsilon)
+				{
+					population[mi + i].flag = 1;
+					return population[mi + i];
+				}
+			}
+
+			// Selekcja mi najlepszych osobników
+			for (int i = 0; i < mi; ++i)
+			{
+				worst_idx = 0;
+				for (int j = 1; j < mi + lambda; ++j)
+				{
+					if (population[worst_idx].y > population[j].y)
+						worst_idx = j;
+				}
+				best_mu[i] = population[worst_idx];
+				population[worst_idx].y = 1e10;
+			}
+
+			// Aktualizacja populacji bazowej
+			for (int i = 0; i < mi; ++i)
+				population[i] = best_mu[i];
+
+			if (solution::f_calls > Nmax)
+				break;
+		}
+
+		population[0].flag = 0;
+		return population[0];
 	}
 	catch (string ex_info)
 	{
